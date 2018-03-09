@@ -5,6 +5,7 @@
 
 #include "IdGenerator.h"
 #include "Models.h"
+#include "Tools.h"
 using std::cin;
 using std::cout;
 using std::endl;
@@ -24,11 +25,6 @@ const char COMMAND_ADD_WALLET[] = "add-wallet";
 const char COMMAND_MAKE_ORDER[] = "make-order";
 const char COMMAND_WALLET_INFO[] = "wallet-info";
 const char COMMAND_ATTRACT_INVESTORS[] = "attract-investors";
-
-void print(const Wallet & w)
-{
-	cout << w.id << " " << w.fiatMoney << " " << w.owner << endl;
-}
 
 bool MakeTransaction(unsigned int senderId, unsigned int recieverId, double coins)
 {
@@ -89,8 +85,15 @@ bool MakeOrder()
 		file.close();
 		return false;
 	}
-	char type[4];
-	cin >> type;
+	char typeStr[4];
+	cin >> typeStr;
+	Type type;
+	bool success = CharArrayToType(typeStr, type);
+	if (!success)
+	{
+		file.close();
+		return false;
+	}
 	double coins;
 	cin >> coins;
 	if (coins < 0)
@@ -101,13 +104,9 @@ bool MakeOrder()
 	unsigned int walletId;
 	cin >> walletId;
 
-	// TODO
-	
-	int sizeoftype = sizeof(type);
-	file.write(reinterpret_cast<char*>(&sizeoftype), sizeof(int));
-	file.write(reinterpret_cast<char*>(&type), sizeoftype);
-	file.write(reinterpret_cast<char*>(&coins), sizeof(double));
 	file.write(reinterpret_cast<char*>(&walletId), sizeof(unsigned int));
+	file.write(reinterpret_cast<char*>(&type), sizeof(Type));
+	file.write(reinterpret_cast<char*>(&coins), sizeof(double));
 
 	file.close();
 	return true;
@@ -125,15 +124,21 @@ bool WalletInfo()
 		return false;
 	}
 
-	while (file.eof())
+	while (!file.eof())
 	{
 		Wallet w;
-		file.read(reinterpret_cast<char*>(&w), sizeof(Wallet));
+		file.read(reinterpret_cast<char*>(&w.id), sizeof(unsigned int));
 		if (w.id == id)
 		{
-			print(w);
+			file.read(reinterpret_cast<char*>(&w.fiatMoney), sizeof(double));
+			file.read(reinterpret_cast<char*>(&w.owner), sizeof(char) * 256);
+			Print(w);
 			file.close();
 			return true;
+		}
+		else
+		{
+			file.seekg(sizeof(double) + (sizeof(char) * 256), std::ios::cur);
 		}
 	}
 	cout << "Wallet doesn't exist." << endl;
@@ -199,7 +204,9 @@ void Run(HANDLE &hConsole)
 			}
 			else
 			{
+				SetConsoleTextAttribute(hConsole, CONSOLE_RED);
 				cout << "Viewing wallet info failed" << endl;
+				SetConsoleTextAttribute(hConsole, CONSOLE_DEFAULT);
 			}
 			continue;
 		}
@@ -209,7 +216,9 @@ void Run(HANDLE &hConsole)
 			bool success = AttractInvestors();
 			if (!success)
 			{
+				SetConsoleTextAttribute(hConsole, CONSOLE_RED);
 				cout << "Attracting investors failed" << endl;
+				SetConsoleTextAttribute(hConsole, CONSOLE_DEFAULT);
 			}
 			continue;
 		}
@@ -266,7 +275,7 @@ int main()
 {
 	srand(time(NULL)); // set random seed for id generating function
 	HANDLE  hConsole;
-	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	hConsole = GetStdHandle(STD_OUTPUT_HANDLE); // console's handle - for changing text color
 
 	Load();
 
