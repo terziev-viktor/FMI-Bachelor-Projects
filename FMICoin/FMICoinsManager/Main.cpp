@@ -124,9 +124,9 @@ bool WalletInfo()
 		return false;
 	}
 
+	Wallet w;
 	while (!file.eof())
 	{
-		Wallet w;
 		file.read(reinterpret_cast<char*>(&w.id), sizeof(unsigned int));
 		if (w.id == id)
 		{
