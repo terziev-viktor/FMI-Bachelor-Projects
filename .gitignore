@@ -291,7 +291,7 @@ __pycache__/
 *.sln
 *.vcxproj.filters
 *.vcxproj
-
+*.vcxproj.user
 # Visual Studio Code
 .vscode
 
