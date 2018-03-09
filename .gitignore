@@ -289,3 +289,5 @@ __pycache__/
 
 # visual studio code
 .vscode
+# data files
+*.dat
