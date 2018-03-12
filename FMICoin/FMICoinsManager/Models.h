@@ -1,3 +1,4 @@
+
 struct Wallet
 {
 	char owner[256];

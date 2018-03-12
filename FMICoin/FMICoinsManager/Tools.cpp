@@ -1,8 +1,9 @@
 #include "Tools.h"
-#include "Models.h"
+
 #include <iostream>
 using std::cout;
 using std::endl;
+
 bool CharArrayToType(const char type[], Type & out)
 {
 	if (strcmp(SELL_AS_STR, type) == 0)
@@ -21,4 +22,9 @@ bool CharArrayToType(const char type[], Type & out)
 void Print(const Wallet & w)
 {
 	cout << w.id << " " << w.fiatMoney << " " << w.owner << endl;
+}
+
+void Print(const Wallet & w, double fmiCoins)
+{
+	cout << w.id << " " << w.fiatMoney << " FMICoins:" << fmiCoins << w.owner << endl;
 }

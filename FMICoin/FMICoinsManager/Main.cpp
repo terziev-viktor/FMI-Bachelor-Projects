@@ -1,11 +1,11 @@
 #include <iostream>
 #include <fstream>
-#include <ctime>
+#include <time.h>
 #include <Windows.h>
 
 #include "IdGenerator.h"
-#include "Models.h"
 #include "Tools.h"
+
 using std::cin;
 using std::cout;
 using std::endl;
@@ -25,6 +25,7 @@ const char COMMAND_ADD_WALLET[] = "add-wallet";
 const char COMMAND_MAKE_ORDER[] = "make-order";
 const char COMMAND_WALLET_INFO[] = "wallet-info";
 const char COMMAND_ATTRACT_INVESTORS[] = "attract-investors";
+const char COMMAND_LIST_WALLETS[] = "list-wallets";
 
 bool MakeTransaction(unsigned int senderId, unsigned int recieverId, double coins)
 {
@@ -85,7 +86,7 @@ bool MakeOrder()
 		file.close();
 		return false;
 	}
-	char typeStr[4];
+	char typeStr[5];
 	cin >> typeStr;
 	Type type;
 	bool success = CharArrayToType(typeStr, type);
@@ -105,10 +106,52 @@ bool MakeOrder()
 	cin >> walletId;
 
 	file.write(reinterpret_cast<char*>(&walletId), sizeof(unsigned int));
-	file.write(reinterpret_cast<char*>(&type), sizeof(Type));
+	file.write(reinterpret_cast<char*>(&type), sizeof(Type::SELL));
 	file.write(reinterpret_cast<char*>(&coins), sizeof(double));
 
 	file.close();
+	return true;
+}
+
+bool CalcCoinsByTransactions(unsigned int id, double & out)
+{
+	std::ifstream file;
+	file.open(TRANSACTIONS, std::ios::binary);
+	if (!file.good())
+	{
+		file.close();
+		return false;
+	}
+	double coins = 0, c;
+	unsigned int sender, reciever;
+	// TODO: .eof() is not being triggered for some reason
+	int index = 0;
+	while (true)
+	{
+		file.read(reinterpret_cast<char*>(&sender), sizeof(unsigned));
+		file.read(reinterpret_cast<char*>(&reciever), sizeof(unsigned));
+		if (file.eof())
+		{
+			break;
+		}
+		if (sender == id)
+		{
+			file.read(reinterpret_cast<char*>(&c), sizeof(double));
+			coins -= c;
+			continue;
+		}
+		else if (reciever == id)
+		{
+			file.read(reinterpret_cast<char*>(&c), sizeof(double));
+			coins += c;
+			continue;
+		}
+		else
+		{
+			file.seekg(sizeof(double));
+		}
+	}
+	out = coins;
 	return true;
 }
 
@@ -132,7 +175,10 @@ bool WalletInfo()
 		{
 			file.read(reinterpret_cast<char*>(&w.fiatMoney), sizeof(double));
 			file.read(reinterpret_cast<char*>(&w.owner), sizeof(char) * 256);
-			Print(w);
+			file.close();
+			double coins;
+			CalcCoinsByTransactions(w.id, coins);
+			Print(w, coins);
 			file.close();
 			return true;
 		}
@@ -150,6 +196,35 @@ bool AttractInvestors()
 {
 	// TODO:
 	return false;
+}
+
+bool ListWallets()
+{
+	int n;
+	cin >> n;
+	std::ifstream file;
+	file.open(WALLETS, std::ios::binary);
+	if (!file.good())
+	{
+		file.close();
+		return 0;
+	}
+	unsigned int id;
+	double fiatmoney;
+	char name[256];
+	for (int i = 0; i < n; i++)
+	{
+		file.read(reinterpret_cast<char*>(&id), sizeof(unsigned int));
+		file.read(reinterpret_cast<char*>(&fiatmoney), sizeof(double));
+		file.read(reinterpret_cast<char*>(&name), sizeof(char) * 256);
+		cout << i << ". " << id << " " << fiatmoney << " " << name << endl;
+		if (file.eof())
+		{
+			break;
+		}
+	}
+	file.close();
+	return true;
 }
 
 void Run(HANDLE &hConsole)
@@ -223,6 +298,18 @@ void Run(HANDLE &hConsole)
 			continue;
 		}
 
+		if (strcmp(command, COMMAND_LIST_WALLETS) == 0)
+		{
+			bool success = ListWallets();
+			if (!success)
+			{
+				SetConsoleTextAttribute(hConsole, CONSOLE_RED);
+				cout << "Failed listing wallets";
+				SetConsoleTextAttribute(hConsole, CONSOLE_DEFAULT);
+			}
+			continue;
+		}
+
 	} while (strcmp(command, COMMAND_QUIT) != 0);
 }
 
@@ -233,10 +320,11 @@ void Load()
 
 	if (file.good())
 	{
+		cout << "Wallets:" << endl;
 		unsigned int id;
 		double money;
 		char name[256];
-		while (!file.eof())
+		while (true)
 		{
 			file.read(reinterpret_cast<char*>(&id), sizeof(unsigned int));
 			file.read(reinterpret_cast<char*>(&money), sizeof(double));
@@ -244,6 +332,10 @@ void Load()
 			if (!file.eof())
 			{
 				cout << id << " " << money << " " << name << endl;
+			}
+			else
+			{
+				break;
 			}
 		}
 	}
@@ -254,10 +346,11 @@ void Load()
 	cout << endl;
 	if (transactions.good())
 	{
+		cout << "Transactions" << endl;
 		unsigned sender;
 		unsigned reciever;
 		double coins;
-		while (!transactions.eof())
+		while (true)
 		{
 			transactions.read(reinterpret_cast<char*>(&sender), sizeof(sender));
 			transactions.read(reinterpret_cast<char*>(&reciever), sizeof(reciever));
@@ -266,14 +359,43 @@ void Load()
 			{
 				cout << sender << "->" << reciever << " " << coins << endl;
 			}
+			else
+			{
+				break;
+			}
 		}
 	}
 	file.close();
+
+	std::ifstream orders;
+	orders.open(ORDERS, std::ios::binary);
+	if (orders.good())
+	{
+		Type type;
+		double coins;
+		unsigned int walletId;
+		cout << "Orders:" << endl;
+		while (true)
+		{
+			orders.read(reinterpret_cast<char*>(&walletId), sizeof(unsigned));
+			orders.read(reinterpret_cast<char*>(&type), sizeof(Type::SELL));
+			orders.read(reinterpret_cast<char*>(&coins), sizeof(double));
+			if (!orders.eof())
+			{
+				cout << walletId << " - " << type << " - " << coins << endl;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	orders.close();
 }
 
 int main()
 {
-	srand(time(NULL)); // set random seed for id generating function
+	srand((unsigned int) (time(NULL))); // set random seed for id generating function
 	HANDLE  hConsole;
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE); // console's handle - for changing text color
 

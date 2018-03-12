@@ -1,4 +1,5 @@
 #include "IdGenerator.h"
+#include <iostream>
 
 unsigned int GenerateId()
 {
