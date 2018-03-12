@@ -4,6 +4,8 @@ struct Wallet
 	char owner[256];
 	unsigned int id;
 	double fiatMoney;
+	int transactionsCount;
+	bool deleted;
 };
 
 struct Transaction

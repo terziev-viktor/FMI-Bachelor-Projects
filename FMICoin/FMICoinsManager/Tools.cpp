@@ -26,5 +26,5 @@ void Print(const Wallet & w)
 
 void Print(const Wallet & w, double fmiCoins)
 {
-	cout << w.id << " " << w.fiatMoney << " FMICoins:" << fmiCoins << w.owner << endl;
+	cout << w.id << " " << w.fiatMoney << " FMICoins: " << fmiCoins << " " << w.owner << endl;
 }

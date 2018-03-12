@@ -9,7 +9,7 @@
 using std::cin;
 using std::cout;
 using std::endl;
-// Consts
+// CONSTS
 const int CONSOLE_GREEN = 10;
 const int CONSOLE_DEFAULT = 7;
 const int CONSOLE_RED = 12;
@@ -44,7 +44,7 @@ bool MakeTransaction(unsigned int senderId, unsigned int recieverId, double coin
 	return true;
 }
 
-bool AddWallet()
+bool AddWallet(double fiatMoney, char owner[256])
 {
 	std::ofstream file;
 	file.open(WALLETS, std::ios::binary | std::ios::app);
@@ -53,15 +53,8 @@ bool AddWallet()
 		file.close();
 		return false;
 	}
-
-	double fiatMoney, coins;
-	cin >> fiatMoney;
+	double coins;
 	coins = fiatMoney / LEV_TO_FMICOINT_COURCE;
-
-	char owner[256];
-	cin.ignore();
-	cin.getline(owner, 256);
-
 	unsigned int id = GenerateId();
 	
 	// write to wallets.dat 
@@ -77,39 +70,51 @@ bool AddWallet()
 	return true;
 }
 
-bool MakeOrder()
+bool MakeOrder(char typeStr[], double coins, unsigned int id)
 {
-	std::ofstream file;
-	file.open(ORDERS, std::ios::binary | std::ios::app);
+	std::fstream file;
+	file.open(ORDERS, std::ios::binary);
+	file.seekg(0, std::ios::end);
+	int filesize = (int) file.tellg();
+	file.seekg(0, std::ios::beg);
+	Type type;
+	bool success = CharArrayToType(typeStr, type);
 	if (!file.good())
 	{
 		file.close();
 		return false;
 	}
-	char typeStr[5];
-	cin >> typeStr;
-	Type type;
-	bool success = CharArrayToType(typeStr, type);
 	if (!success)
 	{
 		file.close();
 		return false;
 	}
-	double coins;
-	cin >> coins;
 	if (coins < 0)
 	{
 		file.close();
 		return false;
 	}
-	unsigned int walletId;
-	cin >> walletId;
 
-	file.write(reinterpret_cast<char*>(&walletId), sizeof(unsigned int));
-	file.write(reinterpret_cast<char*>(&type), sizeof(Type::SELL));
-	file.write(reinterpret_cast<char*>(&coins), sizeof(double));
+	int ordersArrSize = filesize / ((sizeof(unsigned int) + sizeof(Type) + sizeof(double)));
+	Order * orders = new Order[ordersArrSize];
+
+	for (int i = 0; i < ordersArrSize; i++)
+	{
+		file.read(reinterpret_cast<char*>(&orders[i].walletId), sizeof(unsigned int));
+		file.read(reinterpret_cast<char*>(&orders[i].type), sizeof(Type));
+		file.read(reinterpret_cast<char*>(&orders[i].fmiCoins), sizeof(double));
+	}
+	for (int i = 0; i < ordersArrSize; i++)
+	{
+		cout << orders[i].walletId << " - " << orders[i].type << " - " << orders[i].fmiCoins << endl;
+	}
+
+	/*file.write(reinterpret_cast<char*>(&id), sizeof(unsigned int));
+	file.write(reinterpret_cast<char*>(&type), sizeof(Type));
+	file.write(reinterpret_cast<char*>(&coins), sizeof(double));*/
 
 	file.close();
+	delete[] orders;
 	return true;
 }
 
@@ -124,7 +129,6 @@ bool CalcCoinsByTransactions(unsigned int id, double & out)
 	}
 	double coins = 0, c;
 	unsigned int sender, reciever;
-	// TODO: .eof() is not being triggered for some reason
 	int index = 0;
 	while (true)
 	{
@@ -148,19 +152,18 @@ bool CalcCoinsByTransactions(unsigned int id, double & out)
 		}
 		else
 		{
-			file.seekg(sizeof(double));
+			file.seekg(sizeof(double), std::ios::cur);
 		}
 	}
 	out = coins;
 	return true;
 }
 
-bool WalletInfo()
+bool WalletInfo(unsigned int id)
 {
-	unsigned int id;
-	cin >> id;
 	std::ifstream file;
 	file.open(WALLETS, std::ios::binary);
+
 	if (!file.good())
 	{
 		file.close();
@@ -168,9 +171,9 @@ bool WalletInfo()
 	}
 
 	Wallet w;
-	while (!file.eof())
+	while (true)
 	{
-		file.read(reinterpret_cast<char*>(&w.id), sizeof(unsigned int));
+		file.read(reinterpret_cast<char*>(&w.id), sizeof(unsigned));
 		if (w.id == id)
 		{
 			file.read(reinterpret_cast<char*>(&w.fiatMoney), sizeof(double));
@@ -185,6 +188,10 @@ bool WalletInfo()
 		else
 		{
 			file.seekg(sizeof(double) + (sizeof(char) * 256), std::ios::cur);
+		}
+		if (file.eof())
+		{
+			break;
 		}
 	}
 	cout << "Wallet doesn't exist." << endl;
@@ -217,8 +224,11 @@ bool ListWallets()
 		file.read(reinterpret_cast<char*>(&id), sizeof(unsigned int));
 		file.read(reinterpret_cast<char*>(&fiatmoney), sizeof(double));
 		file.read(reinterpret_cast<char*>(&name), sizeof(char) * 256);
-		cout << i << ". " << id << " " << fiatmoney << " " << name << endl;
-		if (file.eof())
+		if (!file.eof())
+		{
+			cout << i << ". " << id << " " << fiatmoney << " " << name << endl;
+		}
+		else
 		{
 			break;
 		}
@@ -236,7 +246,12 @@ void Run(HANDLE &hConsole)
 
 		if (strcmp(command, COMMAND_ADD_WALLET) == 0)
 		{
-			bool success = AddWallet();
+			double fiatmoney;
+			char name[256];
+			cin >> fiatmoney;
+			cin.ignore();
+			cin.getline(name, '\n');
+			bool success = AddWallet(fiatmoney, name);
 			if (success)
 			{
 				SetConsoleTextAttribute(hConsole, CONSOLE_GREEN);
@@ -254,7 +269,11 @@ void Run(HANDLE &hConsole)
 
 		if (strcmp(command, COMMAND_MAKE_ORDER) == 0)
 		{
-			bool success = MakeOrder();
+			char type[5];
+			double coins;
+			unsigned int id;
+			cin >> type >> coins >> id;
+			bool success = MakeOrder(type, coins, id);
 			if (success)
 			{
 				SetConsoleTextAttribute(hConsole, CONSOLE_GREEN);
@@ -272,12 +291,10 @@ void Run(HANDLE &hConsole)
 
 		if (strcmp(command, COMMAND_WALLET_INFO) == 0)
 		{
-			bool success = WalletInfo();
-			if (success)
-			{
-				cout << "Wallet:" << endl;
-			}
-			else
+			unsigned int id;
+			cin >> id;
+			bool success = WalletInfo(id);
+			if(!success)
 			{
 				SetConsoleTextAttribute(hConsole, CONSOLE_RED);
 				cout << "Viewing wallet info failed" << endl;
