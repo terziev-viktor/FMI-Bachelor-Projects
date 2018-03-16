@@ -9,23 +9,6 @@
 using std::cin;
 using std::cout;
 using std::endl;
-// CONSTS
-const int CONSOLE_GREEN = 10;
-const int CONSOLE_DEFAULT = 7;
-const int CONSOLE_RED = 12;
-const int LEV_TO_FMICOINT_COURCE = 375;
-const unsigned int SYSTEM_WALLET = 4294967295;
-// Files
-const char WALLETS[] = "wallets.dat";
-const char ORDERS[] = "orders.dat";
-const char TRANSACTIONS[] = "transactions.dat";
-// Commands
-const char COMMAND_QUIT[] = "quit";
-const char COMMAND_ADD_WALLET[] = "add-wallet";
-const char COMMAND_MAKE_ORDER[] = "make-order";
-const char COMMAND_WALLET_INFO[] = "wallet-info";
-const char COMMAND_ATTRACT_INVESTORS[] = "attract-investors";
-const char COMMAND_LIST_WALLETS[] = "list-wallets";
 
 bool MakeTransaction(unsigned int senderId, unsigned int recieverId, double coins)
 {
@@ -56,7 +39,7 @@ bool AddWallet(double fiatMoney, char owner[256])
 	double coins;
 	coins = fiatMoney / LEV_TO_FMICOINT_COURCE;
 	unsigned int id = GenerateId();
-	
+
 	// write to wallets.dat 
 	// id -> fiatmoney -> owner [unsigned int][double][256 bytes]
 	file.write(reinterpret_cast<char*>(&id), sizeof(unsigned int));
@@ -70,132 +53,139 @@ bool AddWallet(double fiatMoney, char owner[256])
 	return true;
 }
 
-bool MakeOrder(char typeStr[], double coins, unsigned int id)
+bool UpdateWallet(unsigned int id, Type updateType, double coins)
 {
 	std::fstream file;
-	file.open(ORDERS, std::ios::binary);
-	file.seekg(0, std::ios::end);
-	int filesize = (int) file.tellg();
-	file.seekg(0, std::ios::beg);
-	Type type;
-	bool success = CharArrayToType(typeStr, type);
+	file.open(WALLETS, std::ios::binary);
 	if (!file.good())
 	{
 		file.close();
 		return false;
 	}
-	if (!success)
-	{
-		file.close();
-		return false;
-	}
-	if (coins < 0)
-	{
-		file.close();
-		return false;
-	}
-
-	int ordersArrSize = filesize / ((sizeof(unsigned int) + sizeof(Type) + sizeof(double)));
-	Order * orders = new Order[ordersArrSize];
-
-	for (int i = 0; i < ordersArrSize; i++)
-	{
-		file.read(reinterpret_cast<char*>(&orders[i].walletId), sizeof(unsigned int));
-		file.read(reinterpret_cast<char*>(&orders[i].type), sizeof(Type));
-		file.read(reinterpret_cast<char*>(&orders[i].fmiCoins), sizeof(double));
-	}
-	for (int i = 0; i < ordersArrSize; i++)
-	{
-		cout << orders[i].walletId << " - " << orders[i].type << " - " << orders[i].fmiCoins << endl;
-	}
-
-	/*file.write(reinterpret_cast<char*>(&id), sizeof(unsigned int));
-	file.write(reinterpret_cast<char*>(&type), sizeof(Type));
-	file.write(reinterpret_cast<char*>(&coins), sizeof(double));*/
-
-	file.close();
-	delete[] orders;
-	return true;
-}
-
-bool CalcCoinsByTransactions(unsigned int id, double & out)
-{
-	std::ifstream file;
-	file.open(TRANSACTIONS, std::ios::binary);
-	if (!file.good())
-	{
-		file.close();
-		return false;
-	}
-	double coins = 0, c;
-	unsigned int sender, reciever;
-	int index = 0;
+	Wallet w;
 	while (true)
 	{
-		file.read(reinterpret_cast<char*>(&sender), sizeof(unsigned));
-		file.read(reinterpret_cast<char*>(&reciever), sizeof(unsigned));
-		if (file.eof())
+		file.read(reinterpret_cast<char*>(&w.id), sizeof(unsigned));
+		if (id == w.id)
+		{
+			double money;
+			double coinsToMoney = coins * LEV_TO_FMICOINT_COURCE; // conv his coins to real money
+			file.read(reinterpret_cast<char*>(&money), sizeof(double));
+			if (updateType == Type::SELL) // If he has sold some coins => he has earned money and vice versa
+			{
+				money += coinsToMoney;
+			}
+			else
+			{
+				money -= coinsToMoney;
+			}
+			file.seekp(-sizeof(double), std::ios::cur); // set the put pointer just before fiat money so we can overrite
+			file.write(reinterpret_cast<char*>(&coins), sizeof(double));
+			break;
+		}
+		file.seekg(sizeof(double) + sizeof(char) * 256, std::ios::cur);
+		if (file.eof() || file.bad())
 		{
 			break;
 		}
-		if (sender == id)
+	}
+	file.close();
+	return true;
+}
+
+bool MakeOrder(char typeStr[], double coins, unsigned int id)
+{
+	Order order;
+	order.fmiCoins = coins;
+	order.walletId = id;
+	bool convSuccess = CharArrayToType(typeStr, order.type);
+	int orderSize = sizeof(char) * 256 + sizeof(double) + sizeof(unsigned);
+	if (!convSuccess)
+	{
+		return false;
+	}
+	Wallet w;
+	bool success = GetWalletById(order.walletId, w);
+	bool feasible = IsFeasible(order, w);
+
+	std::ifstream in;
+	in.open(ORDERS, std::ios::binary);
+	bool inSuccess = in.good();
+	if (!inSuccess)
+	{
+		in.close();
+		return false;
+	}
+	in.seekg(0, std::ios::ate);
+	long sizeInBytes = in.tellg();
+	long ordersCount = sizeInBytes / orderSize;
+	Order * orders = new Order[ordersCount]; // get all orders from the file, update and write them back
+	int * satisfiedOrders = new int[ordersCount]; // selling/buying may satisfy orders of other users
+	int indexSatisfiedOrders = 0;
+	for (int i = 0; i < ordersCount; i++)
+	{
+		in.read(reinterpret_cast<char*>(&orders[i].walletId), sizeof(unsigned));
+		in.read(reinterpret_cast<char*>(&orders[i].type), sizeof(Type));
+		in.read(reinterpret_cast<char*>(&orders[i].fmiCoins), sizeof(double));
+	}
+	in.close();
+	if (order.type == Type::BUY)
+	{
+		bool fullySatisfied = false;
+		for (int i = 0; i < ordersCount && !fullySatisfied; i++)
 		{
-			file.read(reinterpret_cast<char*>(&c), sizeof(double));
-			coins -= c;
-			continue;
+			if (orders[i].type == Type::SELL)
+			{
+				int comparison = Compare(orders[i].fmiCoins, coins); // check if this old order has enough coins to sell
+				double coinsToSell;
+				if (comparison == -1) // if the current order is for more coins that this old order has to sell then sell as much as possible
+				{
+					coinsToSell = orders[i].fmiCoins;
+				}
+				else
+				{
+					coinsToSell = coins;
+				}
+				MakeTransaction(orders[i].walletId, order.walletId, coinsToSell);
+				bool updateSuccess = UpdateWallet(orders[i].walletId, Type::SELL, coinsToSell);
+				updateSuccess = UpdateWallet(order.walletId, Type::BUY, coinsToSell);
+				coins -= coinsToSell; // update in case if not full satisfaction
+				if (!updateSuccess)
+				{
+					// exception should be handled
+				}
+
+				if (comparison == 0 || comparison == 1)
+				{
+					fullySatisfied = true;
+				}
+			}
 		}
-		else if (reciever == id)
+		if (!fullySatisfied)
 		{
-			file.read(reinterpret_cast<char*>(&c), sizeof(double));
-			coins += c;
-			continue;
-		}
-		else
-		{
-			file.seekg(sizeof(double), std::ios::cur);
+			// write in file a the new order with coins that left
+
 		}
 	}
-	out = coins;
+
+	delete[] orders;
 	return true;
 }
 
 bool WalletInfo(unsigned int id)
 {
-	std::ifstream file;
-	file.open(WALLETS, std::ios::binary);
-
-	if (!file.good())
+	Wallet w;
+	bool success = GetWalletById(id, w);
+	if (!success)
 	{
-		file.close();
 		return false;
 	}
-
-	Wallet w;
-	while (true)
+	success = CalcCoinsByTransactions(w.id, w);
+	if (!success)
 	{
-		file.read(reinterpret_cast<char*>(&w.id), sizeof(unsigned));
-		if (w.id == id)
-		{
-			file.read(reinterpret_cast<char*>(&w.fiatMoney), sizeof(double));
-			file.read(reinterpret_cast<char*>(&w.owner), sizeof(char) * 256);
-			file.close();
-			double coins;
-			CalcCoinsByTransactions(w.id, coins);
-			Print(w, coins);
-			file.close();
-			return true;
-		}
-		else
-		{
-			file.seekg(sizeof(double) + (sizeof(char) * 256), std::ios::cur);
-		}
-		if (file.eof())
-		{
-			break;
-		}
+		return false;
 	}
-	cout << "Wallet doesn't exist." << endl;
-	file.close();
+	Print(w);
 	return true;
 }
 
@@ -203,38 +193,6 @@ bool AttractInvestors()
 {
 	// TODO:
 	return false;
-}
-
-bool ListWallets()
-{
-	int n;
-	cin >> n;
-	std::ifstream file;
-	file.open(WALLETS, std::ios::binary);
-	if (!file.good())
-	{
-		file.close();
-		return 0;
-	}
-	unsigned int id;
-	double fiatmoney;
-	char name[256];
-	for (int i = 0; i < n; i++)
-	{
-		file.read(reinterpret_cast<char*>(&id), sizeof(unsigned int));
-		file.read(reinterpret_cast<char*>(&fiatmoney), sizeof(double));
-		file.read(reinterpret_cast<char*>(&name), sizeof(char) * 256);
-		if (!file.eof())
-		{
-			cout << i << ". " << id << " " << fiatmoney << " " << name << endl;
-		}
-		else
-		{
-			break;
-		}
-	}
-	file.close();
-	return true;
 }
 
 void Run(HANDLE &hConsole)
@@ -294,7 +252,7 @@ void Run(HANDLE &hConsole)
 			unsigned int id;
 			cin >> id;
 			bool success = WalletInfo(id);
-			if(!success)
+			if (!success)
 			{
 				SetConsoleTextAttribute(hConsole, CONSOLE_RED);
 				cout << "Viewing wallet info failed" << endl;
@@ -412,12 +370,11 @@ void Load()
 
 int main()
 {
-	srand((unsigned int) (time(NULL))); // set random seed for id generating function
+	srand((unsigned int)(time(NULL))); // set random seed for id generating function
 	HANDLE  hConsole;
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE); // console's handle - for changing text color
 
 	Load();
-
 	Run(hConsole);
 
 	return 0;
