@@ -54,6 +54,7 @@ bool AddOrder(Order & o, OrdersContainer & orders, TransactionsContainer & trans
 				if (comparison == 1)
 				{
 					Transaction t;
+					t.time = time(NULL);
 					t.fmiCoins = orders.arr[i].fmiCoins;
 					t.receiverId = o.walletId;
 					t.senderId = orders.arr[i].walletId;
@@ -68,6 +69,7 @@ bool AddOrder(Order & o, OrdersContainer & orders, TransactionsContainer & trans
 				else if (comparison == 0)
 				{
 					Transaction t;
+					t.time = time(NULL);
 					t.senderId = orders.arr[i].walletId;
 					t.receiverId = o.walletId;
 					t.fmiCoins = o.fmiCoins;
@@ -82,6 +84,7 @@ bool AddOrder(Order & o, OrdersContainer & orders, TransactionsContainer & trans
 				else
 				{
 					Transaction t;
+					t.time = time(NULL);
 					t.fmiCoins = o.fmiCoins;
 					t.senderId = orders.arr[i].walletId;
 					t.receiverId = o.walletId;
@@ -100,6 +103,7 @@ bool AddOrder(Order & o, OrdersContainer & orders, TransactionsContainer & trans
 				if (comparison == 1)
 				{
 					Transaction t;
+					t.time = time(NULL);
 					t.senderId = o.walletId;
 					t.receiverId = orders.arr[i].walletId;
 					t.fmiCoins = orders.arr[i].fmiCoins;
@@ -114,6 +118,7 @@ bool AddOrder(Order & o, OrdersContainer & orders, TransactionsContainer & trans
 				else if (comparison == 0)
 				{
 					Transaction t;
+					t.time = time(NULL);
 					t.senderId = o.walletId;
 					t.receiverId = orders.arr[i].walletId;
 					t.fmiCoins = o.fmiCoins;
@@ -128,6 +133,7 @@ bool AddOrder(Order & o, OrdersContainer & orders, TransactionsContainer & trans
 				else
 				{
 					Transaction t;
+					t.time = time(NULL);
 					t.senderId = o.walletId;
 					t.receiverId = orders.arr[i].walletId;
 					t.fmiCoins = o.fmiCoins;
@@ -368,7 +374,6 @@ void Load(WalletsContainer & wallets, TransactionsContainer & transactions, Orde
 
 int main()
 {
-	srand((unsigned int)(time(NULL))); // set random seed for id generating function
 	HANDLE  hConsole;
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE); // console's handle - for changing text color
 

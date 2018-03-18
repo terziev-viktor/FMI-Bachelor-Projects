@@ -1,6 +1,7 @@
 #pragma once
 #include "ToolsH.h"
 #include <ctime>
+
 bool CharArrayToType(const char type[], Type & out)
 {
 	if (strcmp(SELL_AS_STR, type) == 0)
