@@ -8,12 +8,24 @@ bool CharArrayToType(const char type[], Type & out)
 		out = Type::SELL;
 		return true;
 	}
-	else if(strcmp(BUY_AS_STR, type))
+	else if(strcmp(BUY_AS_STR, type) == 0)
 	{
 		out = Type::BUY;
 		return true;
 	}
 	return false;
+}
+
+void TypeToCharArray(char dest[5], Type type)
+{
+	if (type == Type::SELL)
+	{
+		strcpy_s(dest, sizeof(char) * 5, "SELL");
+	}
+	else
+	{
+		strcpy_s(dest, sizeof(char) * 5, "BUY");
+	}
 }
 
 void Print(const Wallet & w, bool asInvestor = false)
@@ -70,10 +82,9 @@ void Print(const WalletsContainer & w)
 
 void Print(const Order & o)
 {
-	cout << o.type << endl;
-	cout << o.walletId << endl;
-	cout << o.fmiCoins << endl;
-	cout << o.satisfied << endl;
+	char type[5];
+	TypeToCharArray(type, o.type);
+	cout << o.walletId << " wants to " << type << " " << o.fmiCoins << " coins" << endl;
 }
 
 void Print(const OrdersContainer & o)
@@ -281,6 +292,7 @@ bool LoadOrders(OrdersContainer& o, char msg[100])
 		in.read(reinterpret_cast<char*>(&o.arr[i].walletId), sizeof(unsigned));
 		in.read(reinterpret_cast<char*>(&o.arr[i].type), sizeof(Type));
 		in.read(reinterpret_cast<char*>(&o.arr[i].fmiCoins), sizeof(double));
+		o.arr[i].satisfied = false;
 	}
 	in.close();
 	return true;

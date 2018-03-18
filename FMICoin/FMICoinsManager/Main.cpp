@@ -149,6 +149,7 @@ bool AddOrder(Order & o, OrdersContainer & orders, TransactionsContainer & trans
 			ExpandArr(orders);
 		}
 		Cpy(orders.arr[orders.index], o);
+		orders.index++;
 	}
 	return true;
 }
