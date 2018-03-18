@@ -1,13 +1,51 @@
+#pragma once
 #include "IdGenerator.h"
 #include <iostream>
 
-unsigned int GenerateId()
+bool SetInitId()
 {
-	unsigned int id = 0;
-	for (int i = 0; i < 200; i++)
+	std::ofstream out;
+	out.open(ID, std::ios::binary);
+	if (!out.good())
 	{
-		int bit = rand() % 33;
-		id = id ^ (1 << bit);
+		out.close();
+		return false;
 	}
-	return id;
+	unsigned int id = 1;
+	out.write(reinterpret_cast<char*>(&id), sizeof(unsigned int));
+	out.close();
+	return true;
+}
+
+bool GenerateId(unsigned & id)
+{
+	std::ifstream in;
+	in.open(ID, std::ios::binary | std::ios::ate);
+	if (!in.good())
+	{
+		in.close();
+		return false;
+	}
+	long long size = in.tellg();
+	if (!size)
+	{
+		in.close();
+		bool success = SetInitId();
+		if (!success)
+		{
+			return false;
+		}
+		in.open(ID, std::ios::binary);
+	}
+	in.seekg(0, std::ios::beg);
+	
+	in.read(reinterpret_cast<char*>(&id), sizeof(unsigned));
+	in.close();
+	std::ofstream out;
+	out.open(ID, std::ios::binary);
+	unsigned int nextId = id + 1;
+	out.write(reinterpret_cast<char*>(&nextId), sizeof(unsigned));
+	out.close();
+	
+	return true;
 }

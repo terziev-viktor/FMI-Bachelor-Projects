@@ -1,4 +1,4 @@
-
+#pragma once
 struct Wallet
 {
 	char owner[256];
@@ -7,6 +7,10 @@ struct Wallet
 	double fmiCoins;
 	int transactionsCount;
 	bool deleted;
+	bool fmiCoinsCalculated = false;
+	long long firstTransaction;
+	long long lastTransaction;
+	static const int WRITE_SIZE = sizeof(char) * 256 + sizeof(double) + sizeof(unsigned); // size of Wallet written in wallets.dat
 };
 
 struct Transaction
@@ -15,6 +19,7 @@ struct Transaction
 	unsigned int senderId;
 	unsigned int receiverId;
 	double fmiCoins;
+	static const int WRITE_SIZE = sizeof(unsigned) * 2 + sizeof(long long) + sizeof(double);
 };
 
 enum Type
@@ -28,4 +33,27 @@ struct Order
 	Type type;
 	unsigned walletId;
 	double fmiCoins;
+	bool satisfied;
+	static const int WRITE_SIZE = sizeof(unsigned) + sizeof(Type) + sizeof(double);
+};
+
+struct WalletsContainer
+{
+	Wallet * arr;
+	long long size;
+	long long index;
+};
+
+struct TransactionsContainer
+{
+	Transaction * arr;
+	long long size;
+	long long index;
+};
+
+struct OrdersContainer
+{
+	Order * arr;
+	long long size;
+	long long index;
 };
