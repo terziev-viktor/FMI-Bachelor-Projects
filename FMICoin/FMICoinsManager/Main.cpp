@@ -210,7 +210,7 @@ bool AttractInvestors(WalletsContainer & wallets, TransactionsContainer & t, cha
 void Run(HANDLE &hConsole, WalletsContainer & wallets, TransactionsContainer & transacions, OrdersContainer & orders)
 {
 	char errmsg[100];
-	char command[18];
+	char command[50];
 	bool running = true;
 	do
 	{

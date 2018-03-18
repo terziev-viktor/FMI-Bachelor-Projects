@@ -171,8 +171,8 @@ bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, Tr
 	}
 	if (found)
 	{
-		Cpy(out, wallets.arr[p]);
 		CalcFmiCoins(wallets.arr[p], transactions);
+		Cpy(out, wallets.arr[p]);
 		return true;
 	}
 	strcpy_s(errmsg, sizeof(char) * 100, "Wallet not found.");
@@ -182,7 +182,12 @@ bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, Tr
 int Compare(double a, double b)
 {
 	double c = a - b;
-	if (c < eps)
+	double cMod = c;
+	if (cMod < 0)
+	{
+		cMod *= -1;
+	}
+	if (cMod < eps)
 	{
 		return 0;
 	}
@@ -303,6 +308,7 @@ void Cpy(Wallet & dest, Wallet & source)
 {
 	strcpy_s(dest.owner, sizeof(char) * 256, source.owner);
 	dest.id = source.id;
+	dest.fmiCoinsCalculated = source.fmiCoinsCalculated;
 	dest.fiatMoney = source.id;
 	dest.fmiCoins = source.fmiCoins;
 	dest.transactionsCount = source.transactionsCount;
