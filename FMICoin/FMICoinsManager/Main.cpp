@@ -19,6 +19,7 @@ bool AddTransaction(TransactionsContainer & transactions, Transaction & t)
 	transactions.arr[transactions.index].fmiCoins = t.fmiCoins;
 	transactions.arr[transactions.index].time = t.time;
 	transactions.index++;
+
 	return true;
 }
 
@@ -37,87 +38,80 @@ bool AddWallet(double fiatMoney, char owner[256], WalletsContainer & wallets, ch
 		strcpy_s(errmsg, sizeof(char) * 100, "Cound not generate id.");
 		return false;
 	}
-	
 	return true;
 }
 
-bool AddOrder(Order & o, OrdersContainer & orders, TransactionsContainer & transactions, char errmsg[100])
+bool AddOrder(Order & o, OrdersContainer & orders, TransactionsContainer & transactions, WalletsContainer & wallets, char errmsg[100])
 {
 	o.satisfied = false;
+	int c = 0;
+	double m = 0;
 	for (long long i = 0; i < orders.index && !o.satisfied; i++)
 	{
 		if (o.type != orders.arr[i].type)
 		{
-			if (o.type == Type::BUY) // => orders.arr[i].type == SELL
+			if (o.type == Type::BUY)	 // => orders.arr[i].type == SELL
 			{
 				int comparison = Compare(o.fmiCoins, orders.arr[i].fmiCoins);
+				Transaction t;
 				if (comparison == 1)
 				{
-					Transaction t;
 					t.time = time(NULL);
 					t.fmiCoins = orders.arr[i].fmiCoins;
 					t.receiverId = o.walletId;
 					t.senderId = orders.arr[i].walletId;
 					o.fmiCoins -= orders.arr[i].fmiCoins;
-					if (!AddTransaction(transactions, t))
-					{
-						strcpy_s(errmsg, sizeof(char) * 100, "Transaction failed");
-						return false;
-					}
 					orders.arr[i].satisfied = true;
 				}
 				else if (comparison == 0)
 				{
-					Transaction t;
 					t.time = time(NULL);
 					t.senderId = orders.arr[i].walletId;
 					t.receiverId = o.walletId;
 					t.fmiCoins = o.fmiCoins;
-					if (!AddTransaction(transactions, t))
-					{
-						strcpy_s(errmsg, sizeof(char) * 100, "Transaction failed");
-						return false;
-					}
 					orders.arr[i].satisfied = true;
 					o.satisfied = true;
 				}
 				else
 				{
-					Transaction t;
 					t.time = time(NULL);
 					t.fmiCoins = o.fmiCoins;
 					t.senderId = orders.arr[i].walletId;
 					t.receiverId = o.walletId;
-					if (!AddTransaction(transactions, t))
-					{
-						strcpy_s(errmsg, sizeof(char) * 100, "Transaction failed");
-						return false;
-					}
 					o.satisfied = true;
 					orders.arr[i].fmiCoins -= o.fmiCoins;
 				}
+				if (!AddTransaction(transactions, t))
+				{
+					strcpy_s(errmsg, sizeof(char) * 100, "Transaction failed");
+					return false;
+				}
+				if (!WriteTransaction(transactions, wallets, t, o, errmsg));
+				{
+					return false;
+				}
+				if (!UpdateWallet(wallets, transactions, t, errmsg))
+				{
+					return false;
+				}
+				m += t.fmiCoins;
 			}
 			else // o.type = SELL => orders.arr[i].type == BUY
 			{
 				int comparison = Compare(o.fmiCoins, orders.arr[i].fmiCoins);
+				Transaction t;
 				if (comparison == 1)
 				{
-					Transaction t;
 					t.time = time(NULL);
 					t.senderId = o.walletId;
 					t.receiverId = orders.arr[i].walletId;
 					t.fmiCoins = orders.arr[i].fmiCoins;
-					if (!AddTransaction(transactions, t))
-					{
-						strcpy_s(errmsg, sizeof(char) * 100, "Transaction failed");
-						return false;
-					}
+					
 					orders.arr[i].satisfied = true;
 					o.fmiCoins -= orders.arr[i].fmiCoins;
 				}
 				else if (comparison == 0)
 				{
-					Transaction t;
 					t.time = time(NULL);
 					t.senderId = o.walletId;
 					t.receiverId = orders.arr[i].walletId;
@@ -132,21 +126,34 @@ bool AddOrder(Order & o, OrdersContainer & orders, TransactionsContainer & trans
 				}
 				else
 				{
-					Transaction t;
 					t.time = time(NULL);
 					t.senderId = o.walletId;
 					t.receiverId = orders.arr[i].walletId;
 					t.fmiCoins = o.fmiCoins;
-					if (!AddTransaction(transactions, t))
-					{
-						strcpy_s(errmsg, sizeof(char) * 100, "Transaction failed");
-						return false;
-					}
 					o.satisfied = true;
 					orders.arr[i].fmiCoins -= o.fmiCoins;
 				}
+				if (!AddTransaction(transactions, t))
+				{
+					strcpy_s(errmsg, sizeof(char) * 100, "Transaction failed");
+					return false;
+				}
+				if (!WriteTransaction(transactions, wallets, t, o, errmsg))
+				{
+					return false;
+				}
+				if (!UpdateWallet(wallets, transactions, t, errmsg))
+				{
+					return false;
+				}
+				m += t.fmiCoins;
 			}
+			c++;
 		}
+	}
+	if (!WriteTransactionMeta(c, m, o, errmsg))
+	{
+		cout << errmsg << endl;
 	}
 	if (!o.satisfied)
 	{
@@ -257,6 +264,7 @@ void Run(HANDLE &hConsole, WalletsContainer & wallets, TransactionsContainer & t
 			Order o;
 			o.fmiCoins = coins;
 			o.walletId = id;
+			o.time = time(NULL);
 			bool conversion = CharArrayToType(type, o.type);
 			Wallet w;
 			bool found = TellWalletById(o.walletId, wallets, w, transacions, errmsg);
@@ -282,7 +290,7 @@ void Run(HANDLE &hConsole, WalletsContainer & wallets, TransactionsContainer & t
 				SetConsoleTextAttribute(hConsole, CONSOLE_DEFAULT);
 				continue;
 			}
-			bool success = AddOrder(o, orders, transacions, errmsg);
+			bool success = AddOrder(o, orders, transacions, wallets, errmsg);
 			if (success)
 			{
 				SetConsoleTextAttribute(hConsole, CONSOLE_GREEN);

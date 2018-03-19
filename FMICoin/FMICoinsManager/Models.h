@@ -6,7 +6,6 @@ struct Wallet
 	double fiatMoney;
 	double fmiCoins;
 	int transactionsCount;
-	bool deleted;
 	bool fmiCoinsCalculated = false;
 	long long firstTransaction;
 	long long lastTransaction;
@@ -34,6 +33,7 @@ struct Order
 	unsigned walletId;
 	double fmiCoins;
 	bool satisfied;
+	long long time;
 	static const int WRITE_SIZE = sizeof(unsigned) + sizeof(Type) + sizeof(double);
 };
 

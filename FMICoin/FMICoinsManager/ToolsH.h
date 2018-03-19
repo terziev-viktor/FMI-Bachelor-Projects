@@ -34,7 +34,9 @@ void Print(const WalletsContainer & w);
 bool IsFeasible(Order & o, Wallet & w);
 
 // sets out as a copy of the wallet with the given id
-bool TellWalletById(unsigned int id, WalletsContainer&c, Wallet & out, TransactionsContainer & t, char errmsg[100]);
+bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, long long & out_p, TransactionsContainer & transactions, char errmsg[100]);
+
+bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, TransactionsContainer & transactions, char errmsg[100]);
 
 bool LoadWallets(WalletsContainer&, char msg[100]);
 
@@ -56,6 +58,15 @@ void ExpandArr(WalletsContainer & w);
 void ExpandArr(TransactionsContainer & t);
 
 void ExpandArr(OrdersContainer & o);
+
+// Writes txt file with info of the transaction
+bool WriteTransaction(TransactionsContainer & transactions, WalletsContainer & wallets, Transaction & t, Order & o, char errmsg[100]);
+
+// Writes metadata for order in the end of the file for that order
+bool WriteTransactionMeta(int transactionsCount, double fmiCoins, Order & o, char errmsg[100]);
+
+// Updates fiatMoney based on transaction
+bool UpdateWallet(WalletsContainer & wallets, TransactionsContainer & transactions, Transaction & t, char errmsg[100]);
 
 bool SaveWallets(WalletsContainer & wallets, char errmsg[100]);
 

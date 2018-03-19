@@ -149,6 +149,42 @@ void CalcFmiCoins(Wallet & w, TransactionsContainer & t)
 	w.fmiCoinsCalculated = true;
 }
 
+bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, long long & out_p, TransactionsContainer & transactions, char errmsg[100])
+{
+	long long p = wallets.index / 2;
+	long long rightIndex = wallets.index;
+	long long leftIndex = 0;
+	bool found = wallets.arr[p].id == id;
+	while (!found && (rightIndex - leftIndex) > 1)
+	{
+		if (id > wallets.arr[p].id)
+		{
+			leftIndex = p;
+			p += (rightIndex - p) / 2;
+		}
+		else
+		{
+			rightIndex = p;
+			long long offset = (p - leftIndex) / 2;
+			if (offset == 0)
+			{
+				offset = 1;
+			}
+			p -= offset;
+		}
+		found = wallets.arr[p].id == id;
+	}
+	if (found)
+	{
+		CalcFmiCoins(wallets.arr[p], transactions);
+		Cpy(out, wallets.arr[p]);
+		out_p = p;
+		return true;
+	}
+	strcpy_s(errmsg, sizeof(char) * 100, "Wallet not found.");
+	return false;
+}
+
 bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, TransactionsContainer & transactions, char errmsg[100])
 {
 	long long p = wallets.index / 2;
@@ -165,7 +201,12 @@ bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, Tr
 		else
 		{
 			rightIndex = p;
-			p -= (p - leftIndex) / 2;
+			long long offset = (p - leftIndex) / 2;
+			if (offset == 0)
+			{
+				offset = 1;
+			}
+			p -= offset;
 		}
 		found = wallets.arr[p].id == id;
 	}
@@ -226,7 +267,6 @@ bool LoadWallets(WalletsContainer & w, char errmsg[100])
 		in.read(reinterpret_cast<char*>(&w.arr[i].owner), sizeof(char) * 256);
 		// default values
 		w.arr[i].fmiCoins = 0;
-		w.arr[i].deleted = false;
 		w.arr[i].transactionsCount = 0;
 	}
 	in.close();
@@ -309,10 +349,9 @@ void Cpy(Wallet & dest, Wallet & source)
 	strcpy_s(dest.owner, sizeof(char) * 256, source.owner);
 	dest.id = source.id;
 	dest.fmiCoinsCalculated = source.fmiCoinsCalculated;
-	dest.fiatMoney = source.id;
+	dest.fiatMoney = source.fiatMoney;
 	dest.fmiCoins = source.fmiCoins;
 	dest.transactionsCount = source.transactionsCount;
-	dest.deleted = source.deleted;
 	dest.firstTransaction = source.firstTransaction;
 	dest.lastTransaction = source.lastTransaction;
 }
@@ -382,6 +421,75 @@ void ExpandArr(OrdersContainer & o)
 	delete[] o.arr;
 	o.arr = new_arr;
 	o.size = new_size;
+}
+
+bool WriteTransaction(TransactionsContainer & transactions, WalletsContainer & wallets, Transaction & t, Order & o, char errmsg[100])
+{
+	Wallet sender;
+	Wallet reciever;
+	if (!TellWalletById(t.senderId, wallets, sender, transactions, errmsg))
+	{
+		return false;
+	}
+	if (!TellWalletById(t.receiverId, wallets, reciever, transactions, errmsg))
+	{
+		return false;
+	}
+	char fileName[50], timeStr[26];
+	_itoa_s(o.walletId, fileName, 10);
+	ctime_s(timeStr, sizeof(char) * 26, &o.time);
+	strcat_s(fileName, timeStr);
+	strcat_s(fileName, ".txt");
+
+	std::fstream out;
+	out.open(fileName, std::ios::app | std::ios::out);
+	if (!out)
+	{
+		strcpy_s(errmsg, sizeof(char) * 100, "Could not open transaction text file.");
+	}
+	out << sender.owner << " " << reciever.owner << " " << t.fmiCoins << endl;
+	out.close();
+	return true;
+}
+
+bool WriteTransactionMeta(int transactionsCount, double fmiCoins, Order & o, char errmsg[100])
+{
+	char fileName[50], timeStr[26];
+	_itoa_s(o.walletId, fileName, 10);
+	ctime_s(timeStr, sizeof(char) * 26, &o.time);
+	strcat_s(fileName, timeStr);
+	strcat_s(fileName, ".txt");
+
+	std::fstream out;
+	out.open(fileName, std::ios::app | std::ios::out);
+	//out.open(fileName, std::ios::app);
+	if (!out)
+	{
+		out.close();
+		strcpy_s(errmsg, sizeof(char) * 100, "Could not open transaction meta text file.");
+		return false;
+	}
+	out << transactionsCount << " " << fmiCoins * MONEY_TO_FMICOINT_COURCE << endl;
+	out.close();
+	return true;
+}
+
+bool UpdateWallet(WalletsContainer & wallets, TransactionsContainer & transactions, Transaction & t, char errmsg[100])
+{
+	Wallet w;
+	long long wIndex;
+	if (!TellWalletById(t.receiverId, wallets, w, wIndex, transactions, errmsg))
+	{
+		return false;
+	}
+	double tMoney = t.fmiCoins * MONEY_TO_FMICOINT_COURCE;
+	wallets.arr[wIndex].fiatMoney += tMoney;
+	if (!TellWalletById(t.senderId, wallets, w, wIndex, transactions, errmsg))
+	{
+		return false;
+	}
+	wallets.arr[wIndex].fiatMoney -= tMoney;
+	return true;
 }
 
 bool SaveWallets(WalletsContainer & wallets, char errmsg[100])
