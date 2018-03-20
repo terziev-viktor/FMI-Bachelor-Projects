@@ -24,28 +24,24 @@ void Print(const OrdersContainer & o);
 
 void Print(const Wallet & w, bool);
 
-void Print(const Transaction & w);
-
-void Print(const TransactionsContainer & t);
-
 void Print(const WalletsContainer & w);
 
 // tells if given order is feasible by the wallet provided
 bool IsFeasible(Order & o, Wallet & w);
 
 // sets out as a copy of the wallet with the given id
-bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, long long & out_p, TransactionsContainer & transactions, char errmsg[100]);
+bool TellWalletById(unsigned int id, WalletsContainer& wallets, long long & out_p, char errmsg[100]);
 
-bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, TransactionsContainer & transactions, char errmsg[100]);
+bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out,  char errmsg[100]);
 
 bool LoadWallets(WalletsContainer&, char msg[100]);
 
-bool LoadTransactions(TransactionsContainer&, char msg[100]);
+//bool LoadTransactions(TransactionsContainer&, char msg[100]);
 
 bool LoadOrders(OrdersContainer&, char msg[100]);
 
 // Calculated fmi coins of given wallet by iterating through every transaction that affects it
-void CalcFmiCoins(Wallet & w, TransactionsContainer & t);
+bool CalcFmiCoins(Wallet & w);
 
 void Cpy(Wallet & dest, Wallet & source);
 
@@ -55,20 +51,18 @@ void Cpy(Order & dest, Order & source);
 
 void ExpandArr(WalletsContainer & w);
 
-void ExpandArr(TransactionsContainer & t);
-
 void ExpandArr(OrdersContainer & o);
 
 // Writes txt file with info of the transaction
-bool WriteTransaction(TransactionsContainer & transactions, WalletsContainer & wallets, Transaction & t, Order & o, char errmsg[100]);
+bool WriteTransaction(WalletsContainer & wallets, Transaction & t, Order & o, char errmsg[100]);
 
 // Writes metadata for order in the end of the file for that order
 bool WriteTransactionMeta(int transactionsCount, double fmiCoins, Order & o, char errmsg[100]);
 
 // Updates fiatMoney based on transaction
-bool UpdateWallet(WalletsContainer & wallets, TransactionsContainer & transactions, Transaction & t, char errmsg[100]);
+bool UpdateWallet(WalletsContainer & wallets, Transaction & t, char errmsg[100]);
 
 bool SaveWallets(WalletsContainer & wallets, char errmsg[100]);
 
 // Saves all data to .dat files
-bool Save(WalletsContainer & wallets, TransactionsContainer & t, OrdersContainer & o ,char errmsg[100]);
+bool Save(WalletsContainer & wallets, OrdersContainer & o ,char errmsg[100]);

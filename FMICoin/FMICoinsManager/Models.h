@@ -44,13 +44,6 @@ struct WalletsContainer
 	long long index;
 };
 
-struct TransactionsContainer
-{
-	Transaction * arr;
-	long long size;
-	long long index;
-};
-
 struct OrdersContainer
 {
 	Order * arr;

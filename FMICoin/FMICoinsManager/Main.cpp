@@ -8,18 +8,20 @@ using std::cin;
 using std::cout;
 using std::endl;
 
-bool AddTransaction(TransactionsContainer & transactions, Transaction & t)
+bool AddTransaction(Transaction & t, char errmsg[100])
 {
-	if (transactions.index >= transactions.size)
+	std::ofstream out;
+	out.open(TRANSACTIONS, std::ios::binary | std::ios::app);
+	if (!out.good())
 	{
-		ExpandArr(transactions);
+		strcpy_s(errmsg, sizeof(char) * 100, "Could not open transactions.dat");
+		return false;
 	}
-	transactions.arr[transactions.index].senderId = t.senderId;
-	transactions.arr[transactions.index].receiverId = t.receiverId;
-	transactions.arr[transactions.index].fmiCoins = t.fmiCoins;
-	transactions.arr[transactions.index].time = t.time;
-	transactions.index++;
-
+	out.write(reinterpret_cast<char*>(&t.senderId), sizeof(unsigned));
+	out.write(reinterpret_cast<char*>(&t.receiverId), sizeof(unsigned));
+	out.write(reinterpret_cast<char*>(&t.fmiCoins), sizeof(double));
+	out.write(reinterpret_cast<char*>(&t.time), sizeof(long long));
+	out.close();
 	return true;
 }
 
@@ -41,7 +43,7 @@ bool AddWallet(double fiatMoney, char owner[256], WalletsContainer & wallets, ch
 	return true;
 }
 
-bool AddOrder(Order & o, OrdersContainer & orders, TransactionsContainer & transactions, WalletsContainer & wallets, char errmsg[100])
+bool AddOrder(Order & o, OrdersContainer & orders, WalletsContainer & wallets, char errmsg[100])
 {
 	o.satisfied = false;
 	int c = 0;
@@ -81,16 +83,16 @@ bool AddOrder(Order & o, OrdersContainer & orders, TransactionsContainer & trans
 					o.satisfied = true;
 					orders.arr[i].fmiCoins -= o.fmiCoins;
 				}
-				if (!AddTransaction(transactions, t))
+				if (!AddTransaction(t, errmsg))
 				{
 					strcpy_s(errmsg, sizeof(char) * 100, "Transaction failed");
 					return false;
 				}
-				if (!WriteTransaction(transactions, wallets, t, o, errmsg));
+				if (!WriteTransaction(wallets, t, o, errmsg));
 				{
 					return false;
 				}
-				if (!UpdateWallet(wallets, transactions, t, errmsg))
+				if (!UpdateWallet(wallets, t, errmsg))
 				{
 					return false;
 				}
@@ -116,7 +118,7 @@ bool AddOrder(Order & o, OrdersContainer & orders, TransactionsContainer & trans
 					t.senderId = o.walletId;
 					t.receiverId = orders.arr[i].walletId;
 					t.fmiCoins = o.fmiCoins;
-					if (!AddTransaction(transactions, t))
+					if (!AddTransaction(t, errmsg))
 					{
 						strcpy_s(errmsg, sizeof(char) * 100, "Transaction failed");
 						return false;
@@ -133,16 +135,16 @@ bool AddOrder(Order & o, OrdersContainer & orders, TransactionsContainer & trans
 					o.satisfied = true;
 					orders.arr[i].fmiCoins -= o.fmiCoins;
 				}
-				if (!AddTransaction(transactions, t))
+				if (!AddTransaction(t, errmsg))
 				{
 					strcpy_s(errmsg, sizeof(char) * 100, "Transaction failed");
 					return false;
 				}
-				if (!WriteTransaction(transactions, wallets, t, o, errmsg))
+				if (!WriteTransaction(wallets, t, o, errmsg))
 				{
 					return false;
 				}
-				if (!UpdateWallet(wallets, transactions, t, errmsg))
+				if (!UpdateWallet(wallets, t, errmsg))
 				{
 					return false;
 				}
@@ -167,10 +169,10 @@ bool AddOrder(Order & o, OrdersContainer & orders, TransactionsContainer & trans
 	return true;
 }
 
-bool WalletInfo(unsigned int id, WalletsContainer & wallets, TransactionsContainer & t, char errmsg[100])
+bool WalletInfo(unsigned int id, WalletsContainer & wallets, char errmsg[100])
 {
 	Wallet w;
-	bool success = TellWalletById(id, wallets, w, t, errmsg);
+	bool success = TellWalletById(id, wallets, w, errmsg);
 	if (!success)
 	{
 		return false;
@@ -179,7 +181,7 @@ bool WalletInfo(unsigned int id, WalletsContainer & wallets, TransactionsContain
 	return true;
 }
 
-bool AttractInvestors(WalletsContainer & wallets, TransactionsContainer & t, char errmsg[100])
+bool AttractInvestors(WalletsContainer & wallets, char errmsg[100])
 {
 	int size = 10;
 	Wallet * top10 = new Wallet[size];
@@ -194,7 +196,7 @@ bool AttractInvestors(WalletsContainer & wallets, TransactionsContainer & t, cha
 	{
 		if (!wallets.arr[i].fmiCoinsCalculated)
 		{
-			CalcFmiCoins(wallets.arr[i], t);
+			CalcFmiCoins(wallets.arr[i]);
 		}
 		int j = 9;
 		int comparrison = Compare(wallets.arr[i].fmiCoins, top10[j].fmiCoins);
@@ -214,7 +216,7 @@ bool AttractInvestors(WalletsContainer & wallets, TransactionsContainer & t, cha
 	return true;
 }
 
-void Run(HANDLE &hConsole, WalletsContainer & wallets, TransactionsContainer & transacions, OrdersContainer & orders)
+void Run(HANDLE &hConsole, WalletsContainer & wallets, OrdersContainer & orders)
 {
 	char errmsg[100];
 	char command[50];
@@ -238,7 +240,7 @@ void Run(HANDLE &hConsole, WalletsContainer & wallets, TransactionsContainer & t
 			t.receiverId = wallets.arr[wallets.index - 1].id;
 			t.fmiCoins = fiatmoney / MONEY_TO_FMICOINT_COURCE;
 			t.time = time(NULL);
-			success = success && AddTransaction(transacions, t);
+			success = success && AddTransaction(t, errmsg);
 			if (success)
 			{
 				SetConsoleTextAttribute(hConsole, CONSOLE_GREEN);
@@ -267,7 +269,7 @@ void Run(HANDLE &hConsole, WalletsContainer & wallets, TransactionsContainer & t
 			o.time = time(NULL);
 			bool conversion = CharArrayToType(type, o.type);
 			Wallet w;
-			bool found = TellWalletById(o.walletId, wallets, w, transacions, errmsg);
+			bool found = TellWalletById(o.walletId, wallets, w, errmsg);
 			if (!found)
 			{
 				SetConsoleTextAttribute(hConsole, CONSOLE_RED);
@@ -290,7 +292,7 @@ void Run(HANDLE &hConsole, WalletsContainer & wallets, TransactionsContainer & t
 				SetConsoleTextAttribute(hConsole, CONSOLE_DEFAULT);
 				continue;
 			}
-			bool success = AddOrder(o, orders, transacions, wallets, errmsg);
+			bool success = AddOrder(o, orders, wallets, errmsg);
 			if (success)
 			{
 				SetConsoleTextAttribute(hConsole, CONSOLE_GREEN);
@@ -310,7 +312,7 @@ void Run(HANDLE &hConsole, WalletsContainer & wallets, TransactionsContainer & t
 		{
 			unsigned int id;
 			cin >> id;
-			bool success = WalletInfo(id, wallets, transacions, errmsg);
+			bool success = WalletInfo(id, wallets, errmsg);
 			if (!success)
 			{
 				SetConsoleTextAttribute(hConsole, CONSOLE_RED);
@@ -322,7 +324,7 @@ void Run(HANDLE &hConsole, WalletsContainer & wallets, TransactionsContainer & t
 
 		if (strcmp(command, COMMAND_ATTRACT_INVESTORS) == 0)
 		{
-			bool success = AttractInvestors(wallets, transacions, errmsg);
+			bool success = AttractInvestors(wallets, errmsg);
 			if (!success)
 			{
 				SetConsoleTextAttribute(hConsole, CONSOLE_RED);
@@ -341,7 +343,10 @@ void Run(HANDLE &hConsole, WalletsContainer & wallets, TransactionsContainer & t
 			SetConsoleTextAttribute(hConsole, CONSOLE_DEFAULT);
 		}
 	} while (running);
-	bool saved = Save(wallets, transacions, orders, errmsg);
+	SetConsoleTextAttribute(hConsole, CONSOLE_GREEN);
+	cout << "Saving data..." << endl;
+	SetConsoleTextAttribute(hConsole, CONSOLE_DEFAULT);
+	bool saved = Save(wallets, orders, errmsg);
 	if (!saved)
 	{
 		SetConsoleTextAttribute(hConsole, CONSOLE_RED);
@@ -350,31 +355,25 @@ void Run(HANDLE &hConsole, WalletsContainer & wallets, TransactionsContainer & t
 	}
 }
 
-void Load(WalletsContainer & wallets, TransactionsContainer & transactions, OrdersContainer & orders)
+void Load(WalletsContainer & wallets, OrdersContainer & orders)
 {
+	cout << "Loading data...";
 	char msg[100];
-	// todo
 	bool success = LoadWallets(wallets, msg);
 	if (!success)
 	{
 		cout << msg << endl;
 	}
-	// for debug purposes
-	cout << "Wallets: " << wallets.index << endl;
-	Print(wallets);
-	success = LoadTransactions(transactions, msg);
-	if (!success)
-	{
-		cout << msg << endl;
-	}
-	// for debug purposes
-	cout << "Transactions: " << transactions.index << endl;
-	Print(transactions);
 	success = LoadOrders(orders, msg);
 	if (!success)
 	{
 		cout << msg << endl;
+
 	}
+	cout << "Data loaded" << endl;
+	// for debug purposes
+	cout << "Wallets: " << wallets.index << endl;
+	Print(wallets);
 	// for debug purposes
 	cout << "Orders: " << orders.index << endl;
 	Print(orders);
@@ -386,14 +385,12 @@ int main()
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE); // console's handle - for changing text color
 
 	WalletsContainer wallets;
-	TransactionsContainer transactions;
 	OrdersContainer orders;
-	Load(wallets, transactions, orders);
+	Load(wallets, orders);
 
-	Run(hConsole, wallets, transactions, orders);
+	Run(hConsole, wallets, orders);
 
 	delete[] wallets.arr;
-	delete[] transactions.arr;
 	delete[] orders.arr;
 	return 0;
 }

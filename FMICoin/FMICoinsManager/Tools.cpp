@@ -58,21 +58,6 @@ void Print(Wallet * wallets, int size)
 	}
 }
 
-void Print(const Transaction & w)
-{
-	char timeStr[50];
-	ctime_s(timeStr, sizeof(char) * 50, &w.time);
-	cout << w.senderId << " sends " << w.fmiCoins << " coins to " << w.receiverId << " at " << timeStr;
-}
-
-void Print(const TransactionsContainer & t)
-{
-	for (long long i = 0; i < t.index; i++)
-	{
-		Print(t.arr[i]);
-	}
-}
-
 void Print(const WalletsContainer & w)
 {
 	for (long long i = 0; i < w.index; i++)
@@ -110,46 +95,62 @@ bool IsFeasible(Order & o, Wallet & w)
 	}
 }
 
-void CalcFmiCoins(Wallet & w, TransactionsContainer & t)
+bool CalcFmiCoins(Wallet & w)
 {
 	if (w.fmiCoinsCalculated)
 	{
-		return;
+		return true;
+	}
+	std::ifstream in;
+	in.open(TRANSACTIONS, std::ios::binary);
+	Transaction t;
+	if (!in.good())
+	{
+		in.close();
+		return false;
 	}
 	w.fmiCoins = 0;
-	bool first = false;
-	long long last = 0;
-	w.transactionsCount = 0;
-	for (int i = 0; i < t.index; i++)
+	bool firstT = false;
+	long long lastT;
+	while (!in.eof())
 	{
-		if (t.arr[i].receiverId == w.id)
+		in.read(reinterpret_cast<char*>(&t.senderId), sizeof(unsigned));
+		in.read(reinterpret_cast<char*>(&t.receiverId), sizeof(unsigned));
+		in.read(reinterpret_cast<char*>(&t.fmiCoins), sizeof(double));
+		in.read(reinterpret_cast<char*>(&t.time), sizeof(long long));
+		if (!in.eof())
 		{
-			w.transactionsCount++;
-			last = t.arr[i].time;
-			w.fmiCoins += t.arr[i].fmiCoins;
-			if (!first)
+			bool isSender = w.id == t.senderId;
+			bool isReciever = w.id == t.receiverId;
+			if (isSender)
 			{
-				w.firstTransaction = t.arr[i].time;
-				first = true;
+				w.fmiCoins -= t.fmiCoins;
+				if (!firstT)
+				{
+					w.firstTransaction = t.time;
+					firstT = true;
+				}
+				lastT = t.time;
 			}
-		}
-		else if (t.arr[i].senderId == w.id)
-		{
-			w.transactionsCount++;
-			if (!first)
+			else if (isReciever)
 			{
-				first = true;
-				w.firstTransaction = t.arr[i].time;
+				w.fmiCoins += t.fmiCoins;
+				if (!firstT)
+				{
+					w.firstTransaction = t.time;
+					firstT = true;
+				}
+				lastT = t.time;
 			}
-			last = t.arr[i].time;
-			w.fmiCoins -= t.arr[i].fmiCoins;
 		}
 	}
-	w.lastTransaction = last;
+	in.close();
+	w.lastTransaction = lastT;
 	w.fmiCoinsCalculated = true;
+	return true;
 }
 
-bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, long long & out_p, TransactionsContainer & transactions, char errmsg[100])
+bool TellWalletById(unsigned int id, WalletsContainer& wallets, long long & out_p, char errmsg[100])
 {
 	long long p = wallets.index / 2;
 	long long rightIndex = wallets.index;
@@ -176,8 +177,7 @@ bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, lo
 	}
 	if (found)
 	{
-		CalcFmiCoins(wallets.arr[p], transactions);
-		Cpy(out, wallets.arr[p]);
+		CalcFmiCoins(wallets.arr[p]);
 		out_p = p;
 		return true;
 	}
@@ -185,7 +185,7 @@ bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, lo
 	return false;
 }
 
-bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, TransactionsContainer & transactions, char errmsg[100])
+bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, char errmsg[100])
 {
 	long long p = wallets.index / 2;
 	long long rightIndex = wallets.index;
@@ -212,7 +212,7 @@ bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, Tr
 	}
 	if (found)
 	{
-		CalcFmiCoins(wallets.arr[p], transactions);
+		CalcFmiCoins(wallets.arr[p]);
 		Cpy(out, wallets.arr[p]);
 		return true;
 	}
@@ -268,43 +268,6 @@ bool LoadWallets(WalletsContainer & w, char errmsg[100])
 		// default values
 		w.arr[i].fmiCoins = 0;
 		w.arr[i].transactionsCount = 0;
-	}
-	in.close();
-	return true;
-}
-
-bool LoadTransactions(TransactionsContainer & t, char errmsg[100])
-{
-	std::ifstream in;
-	in.open(TRANSACTIONS, std::ios::binary | std::ios::ate);
-	if (!in.good())
-	{
-		in.close();
-		strcpy_s(errmsg, sizeof(char) * 100, "Error on opening Transactions.dat");
-		return false;
-	}
-	// get size
-	long long gPos = in.tellg();
-	in.seekg(0, std::ios::beg);
-	t.size  = gPos / Transaction::WRITE_SIZE;
-	if (t.size == 0)
-	{
-		t.size = 5;
-		t.index = 0;
-	}
-	else
-	{
-		t.index = t.size;
-		t.size *= 2; // we are giving some space to work
-	}
-
-	t.arr = new Transaction[t.size];
-	for (long long i = 0; i < t.index; i++)
-	{
-		in.read(reinterpret_cast<char*>(&t.arr[i].senderId), sizeof(unsigned));
-		in.read(reinterpret_cast<char*>(&t.arr[i].receiverId), sizeof(unsigned));
-		in.read(reinterpret_cast<char*>(&t.arr[i].fmiCoins), sizeof(double));
-		in.read(reinterpret_cast<char*>(&t.arr[i].time), sizeof(long long));
 	}
 	in.close();
 	return true;
@@ -389,23 +352,6 @@ void ExpandArr(WalletsContainer & w)
 	w.size = new_size;
 }
 
-void ExpandArr(TransactionsContainer & t)
-{
-	long long new_size = t.size * 2;
-	if (new_size == 0)
-	{
-		new_size = 5;
-	}
-	Transaction * new_arr = new Transaction[new_size];
-	for (long long i = 0; i < t.index; i++)
-	{
-		Cpy(new_arr[i], t.arr[i]);
-	}
-	delete[] t.arr;
-	t.arr = new_arr;
-	t.size = new_size;
-}
-
 void ExpandArr(OrdersContainer & o)
 {
 	long long new_size = o.size * 2;
@@ -423,15 +369,15 @@ void ExpandArr(OrdersContainer & o)
 	o.size = new_size;
 }
 
-bool WriteTransaction(TransactionsContainer & transactions, WalletsContainer & wallets, Transaction & t, Order & o, char errmsg[100])
+bool WriteTransaction(WalletsContainer & wallets, Transaction & t, Order & o, char errmsg[100])
 {
 	Wallet sender;
 	Wallet reciever;
-	if (!TellWalletById(t.senderId, wallets, sender, transactions, errmsg))
+	if (!TellWalletById(t.senderId, wallets, sender, errmsg))
 	{
 		return false;
 	}
-	if (!TellWalletById(t.receiverId, wallets, reciever, transactions, errmsg))
+	if (!TellWalletById(t.receiverId, wallets, reciever, errmsg))
 	{
 		return false;
 	}
@@ -474,21 +420,21 @@ bool WriteTransactionMeta(int transactionsCount, double fmiCoins, Order & o, cha
 	return true;
 }
 
-bool UpdateWallet(WalletsContainer & wallets, TransactionsContainer & transactions, Transaction & t, char errmsg[100])
+bool UpdateWallet(WalletsContainer & wallets, Transaction & t, char errmsg[100])
 {
-	Wallet w;
 	long long wIndex;
-	if (!TellWalletById(t.receiverId, wallets, w, wIndex, transactions, errmsg))
+	if (!TellWalletById(t.receiverId, wallets, wIndex, errmsg))
 	{
 		return false;
 	}
 	double tMoney = t.fmiCoins * MONEY_TO_FMICOINT_COURCE;
 	wallets.arr[wIndex].fiatMoney += tMoney;
-	if (!TellWalletById(t.senderId, wallets, w, wIndex, transactions, errmsg))
+	if (!TellWalletById(t.senderId, wallets, wIndex, errmsg))
 	{
 		return false;
 	}
 	wallets.arr[wIndex].fiatMoney -= tMoney;
+	wallets.arr[wIndex].fmiCoinsCalculated = false;
 	return true;
 }
 
@@ -506,26 +452,6 @@ bool SaveWallets(WalletsContainer & wallets, char errmsg[100])
 		out.write(reinterpret_cast<char*>(&wallets.arr[i].id), sizeof(unsigned));
 		out.write(reinterpret_cast<char*>(&wallets.arr[i].fiatMoney), sizeof(double));
 		out.write(reinterpret_cast<char*>(&wallets.arr[i].owner), sizeof(char) * 256);
-	}
-	out.close();
-	return true;
-}
-
-bool SaveTransactions(TransactionsContainer & t, char errmsg[100])
-{
-	std::ofstream out;
-	out.open(TRANSACTIONS, std::ios::binary);
-	if (!out.good())
-	{
-		strcpy_s(errmsg, sizeof(char) * 100, "Could not save transactions");
-		return false;
-	}
-	for (long long i = 0; i < t.index; i++)
-	{
-		out.write(reinterpret_cast<char*>(&t.arr[i].senderId), sizeof(unsigned));
-		out.write(reinterpret_cast<char*>(&t.arr[i].receiverId), sizeof(unsigned));
-		out.write(reinterpret_cast<char*>(&t.arr[i].fmiCoins), sizeof(double));
-		out.write(reinterpret_cast<char*>(&t.arr[i].time), sizeof(long long));
 	}
 	out.close();
 	return true;
@@ -555,10 +481,9 @@ bool SaveOrders(OrdersContainer & o, char errmsg[])
 	return true;
 }
 
-bool Save(WalletsContainer & wallets, TransactionsContainer & t, OrdersContainer & o, char errmsg[100])
+bool Save(WalletsContainer & wallets, OrdersContainer & o, char errmsg[100])
 {
 	bool success = SaveWallets(wallets, errmsg);
-	success = success && SaveTransactions(t, errmsg);
 	success = success && SaveOrders(o, errmsg);
 	return success;
 }
