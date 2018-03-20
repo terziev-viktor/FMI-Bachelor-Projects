@@ -112,6 +112,7 @@ bool CalcFmiCoins(Wallet & w)
 	w.fmiCoins = 0;
 	bool firstT = false;
 	long long lastT;
+	int c = 0;
 	while (!in.eof())
 	{
 		in.read(reinterpret_cast<char*>(&t.senderId), sizeof(unsigned));
@@ -131,6 +132,7 @@ bool CalcFmiCoins(Wallet & w)
 					firstT = true;
 				}
 				lastT = t.time;
+				c++;
 			}
 			else if (isReciever)
 			{
@@ -141,12 +143,14 @@ bool CalcFmiCoins(Wallet & w)
 					firstT = true;
 				}
 				lastT = t.time;
+				c++;
 			}
 		}
 	}
 	in.close();
 	w.lastTransaction = lastT;
 	w.fmiCoinsCalculated = true;
+	w.transactionsCount = c;
 	return true;
 }
 
