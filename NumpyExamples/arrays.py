@@ -14,7 +14,7 @@ print(L + L ) # concatination
 print ( A + A ) # vector addition
  
 # print(L**2) you cant power a list
-print(A**2)
+print(A**2) # a^2
 print(np.sqrt(A)) # square root of the vector
 print(np.exp(A)) # exponent
 print(np.log(A)) # log of the vector
