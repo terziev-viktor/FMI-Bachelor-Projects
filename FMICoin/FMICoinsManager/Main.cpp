@@ -50,7 +50,7 @@ bool AddOrder(Order & o, OrdersContainer & orders, WalletsContainer & wallets, c
 	double m = 0;
 	for (long long i = 0; i < orders.index && !o.satisfied; i++)
 	{
-		if (o.type != orders.arr[i].type)
+		if (o.type != orders.arr[i].type && !orders.arr[i].satisfied)
 		{
 			if (o.type == Type::BUY)	 // => orders.arr[i].type == SELL
 			{
@@ -184,6 +184,7 @@ bool WalletInfo(unsigned int id, WalletsContainer & wallets, char errmsg[100])
 bool AttractInvestors(WalletsContainer & wallets, char errmsg[100])
 {
 	int size = 10;
+	int index = 0;
 	Wallet * top10 = new Wallet[size];
 	for (int i = 0; i < size; i++)
 	{
@@ -210,8 +211,9 @@ bool AttractInvestors(WalletsContainer & wallets, char errmsg[100])
 			j--;
 			comparrison = Compare(wallets.arr[i].fmiCoins, top10[j].fmiCoins);
 		}
+		index++;
 	}
-	Print(top10, size);
+	Print(top10, index);
 	delete[] top10;
 	return true;
 }
@@ -292,6 +294,7 @@ void Run(HANDLE &hConsole, WalletsContainer & wallets, OrdersContainer & orders)
 				SetConsoleTextAttribute(hConsole, CONSOLE_DEFAULT);
 				continue;
 			}
+
 			bool success = AddOrder(o, orders, wallets, errmsg);
 			if (success)
 			{
@@ -334,6 +337,26 @@ void Run(HANDLE &hConsole, WalletsContainer & wallets, OrdersContainer & orders)
 			continue;
 		}
 
+		// for debug purpuses
+		if (strcmp(command, COMMAND_FLUSH) == 0)
+		{
+			bool success = Save(wallets, orders, errmsg);
+			if (!success)
+			{
+				SetConsoleTextAttribute(hConsole, CONSOLE_RED);
+				cout << "Could not flush: ";
+				cout << errmsg << endl;
+				SetConsoleTextAttribute(hConsole, CONSOLE_DEFAULT);
+			}
+			else
+			{
+				SetConsoleTextAttribute(hConsole, CONSOLE_GREEN);
+				cout << "Flushed data to .dat files." << endl;
+				SetConsoleTextAttribute(hConsole, CONSOLE_DEFAULT);
+			}
+			continue;
+		}
+
 		running = strcmp(command, COMMAND_QUIT) != 0;
 		// if the command is not quit and we reached this code => the command is invalid
 		if (running)
@@ -355,7 +378,7 @@ void Run(HANDLE &hConsole, WalletsContainer & wallets, OrdersContainer & orders)
 	}
 }
 
-void Load(WalletsContainer & wallets, OrdersContainer & orders)
+void Load(WalletsContainer & wallets, OrdersContainer & orders, bool print = false)
 {
 	cout << "Loading data...";
 	char msg[100];
@@ -368,15 +391,25 @@ void Load(WalletsContainer & wallets, OrdersContainer & orders)
 	if (!success)
 	{
 		cout << msg << endl;
-
 	}
 	cout << "Data loaded" << endl;
-	// for debug purposes
-	cout << "Wallets: " << wallets.index << endl;
-	Print(wallets);
-	// for debug purposes
-	cout << "Orders: " << orders.index << endl;
-	Print(orders);
+	if (print)
+	{
+		cout << "Wallets: " << wallets.index << endl;
+		Print(wallets);
+		cout << "Orders: " << orders.index << endl;
+		Print(orders);
+	}
+}
+
+void UnLoad(WalletsContainer & w, OrdersContainer & o)
+{
+	delete[] w.arr;
+	delete[] o.arr;
+	w.index = 0;
+	w.size = 0;
+	o.index = 0;
+	o.size = 0;
 }
 
 int main()
@@ -386,11 +419,11 @@ int main()
 
 	WalletsContainer wallets;
 	OrdersContainer orders;
-	Load(wallets, orders);
+	Load(wallets, orders, true);
 
 	Run(hConsole, wallets, orders);
 
-	delete[] wallets.arr;
-	delete[] orders.arr;
+	UnLoad(wallets, orders);
+	
 	return 0;
 }

@@ -53,6 +53,8 @@ void ExpandArr(WalletsContainer & w);
 
 void ExpandArr(OrdersContainer & o);
 
+char * GetTransactionsTextFileName(Order & o);
+
 // Writes txt file with info of the transaction
 bool WriteTransaction(WalletsContainer & wallets, Transaction & t, Order & o, char errmsg[100]);
 

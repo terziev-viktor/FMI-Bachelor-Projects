@@ -1,6 +1,7 @@
 #pragma once
 #include "ToolsH.h"
 #include <ctime>
+#include <string>
 
 bool CharArrayToType(const char type[], Type & out)
 {
@@ -373,6 +374,16 @@ void ExpandArr(OrdersContainer & o)
 	o.size = new_size;
 }
 
+char * GetTransactionsTextFileName(Order & o)
+{
+	char fileName[50], timeStr[26];
+	_itoa_s(o.walletId, fileName, 10);
+	_itoa_s(o.time, timeStr, 10);
+	strcat_s(fileName, timeStr);
+	strcat_s(fileName, ".txt\0");
+	return fileName;
+}
+
 bool WriteTransaction(WalletsContainer & wallets, Transaction & t, Order & o, char errmsg[100])
 {
 	Wallet sender;
@@ -385,17 +396,14 @@ bool WriteTransaction(WalletsContainer & wallets, Transaction & t, Order & o, ch
 	{
 		return false;
 	}
-	char fileName[50], timeStr[26];
-	_itoa_s(o.walletId, fileName, 10);
-	ctime_s(timeStr, sizeof(char) * 26, &o.time);
-	strcat_s(fileName, timeStr);
-	strcat_s(fileName, ".txt");
+	
+	char * fileName = GetTransactionsTextFileName(o);
 
-	std::fstream out;
-	out.open(fileName, std::ios::app | std::ios::out);
+	std::ofstream out(fileName, std::ios::app | std::ios::out);
 	if (!out)
 	{
 		strcpy_s(errmsg, sizeof(char) * 100, "Could not open transaction text file.");
+		// return false;
 	}
 	out << sender.owner << " " << reciever.owner << " " << t.fmiCoins << endl;
 	out.close();
@@ -404,20 +412,14 @@ bool WriteTransaction(WalletsContainer & wallets, Transaction & t, Order & o, ch
 
 bool WriteTransactionMeta(int transactionsCount, double fmiCoins, Order & o, char errmsg[100])
 {
-	char fileName[50], timeStr[26];
-	_itoa_s(o.walletId, fileName, 10);
-	ctime_s(timeStr, sizeof(char) * 26, &o.time);
-	strcat_s(fileName, timeStr);
-	strcat_s(fileName, ".txt");
+	char * fileName = GetTransactionsTextFileName(o);
+	std::ofstream out(fileName, std::ios::app | std::ios::out);
 
-	std::fstream out;
-	out.open(fileName, std::ios::app | std::ios::out);
-	//out.open(fileName, std::ios::app);
 	if (!out)
 	{
-		out.close();
+		//out.close();
 		strcpy_s(errmsg, sizeof(char) * 100, "Could not open transaction meta text file.");
-		return false;
+		// return false;
 	}
 	out << transactionsCount << " " << fmiCoins * MONEY_TO_FMICOINT_COURCE << endl;
 	out.close();

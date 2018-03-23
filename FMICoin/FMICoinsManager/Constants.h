@@ -19,3 +19,4 @@ const char COMMAND_MAKE_ORDER[] = "make-order";
 const char COMMAND_WALLET_INFO[] = "wallet-info";
 const char COMMAND_ATTRACT_INVESTORS[] = "attract-investors";
 const char COMMAND_LIST_WALLETS[] = "list-wallets";
+const char COMMAND_FLUSH[] = "flush"; // for debug purpuses
