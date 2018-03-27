@@ -165,70 +165,49 @@ bool CalcFmiCoins(Wallet & w)
 	return true;
 }
 
-bool TellWalletById(unsigned int id, WalletsContainer& wallets, long long & out_p, char errmsg[100])
+long long search(unsigned id, WalletsContainer & wallets, long long leftIndex, long long rightIndex)
 {
-	long long p = wallets.index / 2;
-	long long rightIndex = wallets.index;
-	long long leftIndex = 0;
-	bool found = wallets.arr[p].id == id;
-	while (!found && (rightIndex - leftIndex) > 1)
+	if (rightIndex >= leftIndex)
 	{
-		if (id > wallets.arr[p].id)
+		long long middle = leftIndex + (rightIndex - leftIndex) / 2;
+
+		if (wallets.arr[middle].id == id)
 		{
-			leftIndex = p;
-			p += (rightIndex - p) / 2;
+			return middle;
 		}
-		else
+
+		if (wallets.arr[middle].id > id)
 		{
-			rightIndex = p;
-			long long offset = (p - leftIndex) / 2;
-			if (offset == 0)
-			{
-				offset = 1;
-			}
-			p -= offset;
+			return search(id, wallets, leftIndex, middle - 1);
 		}
-		found = wallets.arr[p].id == id;
+		
+		return search(id, wallets, middle + 1, rightIndex);
 	}
+	return -1;
+}
+
+bool TellWalletById(unsigned int id, WalletsContainer& wallets, long long & out, char errmsg[100])
+{
+	long long index = search(id, wallets, 0, wallets.index);
+	bool found = index != -1;
 	if (found)
 	{
-		CalcFmiCoins(wallets.arr[p]);
-		out_p = p;
+		CalcFmiCoins(wallets.arr[index]);
+		out = index;
 		return true;
 	}
 	strcpy_s(errmsg, sizeof(char) * 100, "Wallet not found.");
 	return false;
 }
 
-bool TellWalletById(unsigned int id, WalletsContainer& wallets, Wallet & out, char errmsg[100])
+bool TellWalletById(unsigned int id, WalletsContainer & wallets, Wallet & out, char errmsg[100])
 {
-	long long p = wallets.index / 2;
-	long long rightIndex = wallets.index;
-	long long leftIndex = 0;
-	bool found = wallets.arr[p].id == id;
-	while (!found && (rightIndex - leftIndex) > 1)
-	{
-		if (id > wallets.arr[p].id)
-		{
-			leftIndex = p;
-			p += (rightIndex - p) / 2;
-		}
-		else
-		{
-			rightIndex = p;
-			long long offset = (p - leftIndex) / 2;
-			if (offset == 0)
-			{
-				offset = 1;
-			}
-			p -= offset;
-		}
-		found = wallets.arr[p].id == id;
-	}
+	long long index = search(id, wallets, 0, wallets.index);
+	bool found = index != -1;
 	if (found)
 	{
-		CalcFmiCoins(wallets.arr[p]);
-		Cpy(out, wallets.arr[p]);
+		CalcFmiCoins(wallets.arr[index]);
+		Cpy(out, wallets.arr[index]);
 		return true;
 	}
 	strcpy_s(errmsg, sizeof(char) * 100, "Wallet not found.");

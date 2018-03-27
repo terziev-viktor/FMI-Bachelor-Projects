@@ -29,6 +29,8 @@ void Print(const WalletsContainer & w);
 // tells if given order is feasible by the wallet provided
 bool IsFeasible(Order & o, Wallet & w);
 
+long long search(unsigned id, WalletsContainer & wallets, long long leftIndex, long long rightIndex);
+
 // sets out as a copy of the wallet with the given id
 bool TellWalletById(unsigned int id, WalletsContainer& wallets, long long & out_p, char errmsg[100]);
 
