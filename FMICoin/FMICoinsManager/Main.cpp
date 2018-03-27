@@ -181,7 +181,7 @@ bool WalletInfo(unsigned int id, WalletsContainer & wallets, char errmsg[100])
 	return true;
 }
 
-bool AttractInvestors(WalletsContainer & wallets, char errmsg[100])
+bool AttractInvestors(WalletsContainer & wallets, OrdersContainer & o, char errmsg[100])
 {
 	int size = 10;
 	int index = 0;
@@ -212,6 +212,10 @@ bool AttractInvestors(WalletsContainer & wallets, char errmsg[100])
 			comparrison = Compare(wallets.arr[i].fmiCoins, top10[j].fmiCoins);
 		}
 		index++;
+	}
+	for (int i = 0; i < index; i++)
+	{
+		CountOrdersOfWallet(top10[i], o);
 	}
 	Print(top10, index);
 	delete[] top10;
@@ -327,7 +331,7 @@ void Run(HANDLE &hConsole, WalletsContainer & wallets, OrdersContainer & orders)
 
 		if (strcmp(command, COMMAND_ATTRACT_INVESTORS) == 0)
 		{
-			bool success = AttractInvestors(wallets, errmsg);
+			bool success = AttractInvestors(wallets, orders, errmsg);
 			if (!success)
 			{
 				SetConsoleTextAttribute(hConsole, CONSOLE_RED);

@@ -40,6 +40,8 @@ bool LoadWallets(WalletsContainer&, char msg[100]);
 
 bool LoadOrders(OrdersContainer&, char msg[100]);
 
+void CountOrdersOfWallet(Wallet & w, OrdersContainer & o);
+
 // Calculated fmi coins of given wallet by iterating through every transaction that affects it
 bool CalcFmiCoins(Wallet & w);
 

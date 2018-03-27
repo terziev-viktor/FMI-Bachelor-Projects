@@ -39,7 +39,7 @@ void Print(const Wallet & w, bool asInvestor = false)
 		ctime_s(last, sizeof(char) * 50, &w.lastTransaction);
 		cout << "ID: " << w.id << endl;
 		cout << "Coins: " << w.fmiCoins << endl;
-		cout << "Transactions: " << w.transactionsCount << endl;
+		cout << "Orders: " << w.ordersCount << endl;
 		cout << "First Transaction on " << first;
 		cout << "Last transaction on " << last;
 	}
@@ -96,6 +96,18 @@ bool IsFeasible(Order & o, Wallet & w)
 	}
 }
 
+void CountOrdersOfWallet(Wallet & w, OrdersContainer & o)
+{
+	w.ordersCount = 0;
+	for (int i = 0; i < o.index; i++)
+	{
+		if (o.arr[i].walletId = w.id)
+		{
+			w.ordersCount++;
+		}
+	}
+}
+
 bool CalcFmiCoins(Wallet & w)
 {
 	if (w.fmiCoinsCalculated)
@@ -104,16 +116,17 @@ bool CalcFmiCoins(Wallet & w)
 	}
 	std::ifstream in;
 	in.open(TRANSACTIONS, std::ios::binary);
-	Transaction t;
-	if (!in.good())
+	if (!in)
 	{
 		in.close();
-		return false;
+		std::ofstream a(TRANSACTIONS);
+		a.close();
+		in.open(TRANSACTIONS, std::ios::binary);
 	}
+	Transaction t;
 	w.fmiCoins = 0;
 	bool firstT = false;
 	long long lastT;
-	int c = 0;
 	while (!in.eof())
 	{
 		in.read(reinterpret_cast<char*>(&t.senderId), sizeof(unsigned));
@@ -133,7 +146,6 @@ bool CalcFmiCoins(Wallet & w)
 					firstT = true;
 				}
 				lastT = t.time;
-				c++;
 			}
 			else if (isReciever)
 			{
@@ -144,14 +156,12 @@ bool CalcFmiCoins(Wallet & w)
 					firstT = true;
 				}
 				lastT = t.time;
-				c++;
 			}
 		}
 	}
 	in.close();
 	w.lastTransaction = lastT;
 	w.fmiCoinsCalculated = true;
-	w.transactionsCount = c;
 	return true;
 }
 
@@ -247,8 +257,9 @@ bool LoadWallets(WalletsContainer & w, char errmsg[100])
 	if (!in.good())
 	{
 		in.close();
-		strcpy_s(errmsg, sizeof(char) * 100, "Error on opening Wallets.dat");
-		return false;
+		std::ofstream a(WALLETS);
+		a.close();
+		in.open(WALLETS, std::ios::binary | std::ios::ate);
 	}
 	// get size
 	long long gPos = in.tellg();
@@ -272,7 +283,7 @@ bool LoadWallets(WalletsContainer & w, char errmsg[100])
 		in.read(reinterpret_cast<char*>(&w.arr[i].owner), sizeof(char) * 256);
 		// default values
 		w.arr[i].fmiCoins = 0;
-		w.arr[i].transactionsCount = 0;
+		w.arr[i].ordersCount = 0;
 	}
 	in.close();
 	return true;
@@ -282,10 +293,12 @@ bool LoadOrders(OrdersContainer& o, char msg[100])
 {
 	std::ifstream in;
 	in.open(ORDERS, std::ios::binary | std::ios::ate);
-	if (!in.good())
+	if (!in)
 	{
-		strcpy_s(msg, sizeof(char) * 100, "Could not open orders.dat");
-		return false;
+		in.close();
+		std::ofstream a(ORDERS);
+		a.close();
+		in.open(ORDERS, std::ios::binary | std::ios::ate);
 	}
 	long long gPos = in.tellg();
 	o.size = gPos / Order::WRITE_SIZE;
@@ -319,7 +332,7 @@ void Cpy(Wallet & dest, Wallet & source)
 	dest.fmiCoinsCalculated = source.fmiCoinsCalculated;
 	dest.fiatMoney = source.fiatMoney;
 	dest.fmiCoins = source.fmiCoins;
-	dest.transactionsCount = source.transactionsCount;
+	dest.ordersCount = source.ordersCount;
 	dest.firstTransaction = source.firstTransaction;
 	dest.lastTransaction = source.lastTransaction;
 }
@@ -475,10 +488,6 @@ bool SaveOrders(OrdersContainer & o, char errmsg[])
 	}
 	for (long long i = 0; i < o.index; i++)
 	{
-		if (o.arr[i].satisfied) // satisfied orders are deleted
-		{
-			continue;
-		}
 		out.write(reinterpret_cast<char*>(&o.arr[i].walletId), sizeof(unsigned));
 		out.write(reinterpret_cast<char*>(&o.arr[i].type), sizeof(Type));
 		out.write(reinterpret_cast<char*>(&o.arr[i].fmiCoins), sizeof(double));

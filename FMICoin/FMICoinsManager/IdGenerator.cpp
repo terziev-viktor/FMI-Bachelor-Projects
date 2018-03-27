@@ -21,10 +21,12 @@ bool GenerateId(unsigned & id)
 {
 	std::ifstream in;
 	in.open(ID, std::ios::binary | std::ios::ate);
-	if (!in.good())
+	if (!in)
 	{
 		in.close();
-		return false;
+		std::ofstream a(ID);
+		a.close();
+		in.open(ID, std::ios::binary | std::ios::ate);
 	}
 	long long size = in.tellg();
 	if (!size)

@@ -5,7 +5,7 @@ struct Wallet
 	unsigned int id;
 	double fiatMoney;
 	double fmiCoins;
-	int transactionsCount;
+	int ordersCount;
 	bool fmiCoinsCalculated = false;
 	long long firstTransaction;
 	long long lastTransaction;
