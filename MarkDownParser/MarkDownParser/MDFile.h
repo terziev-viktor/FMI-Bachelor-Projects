@@ -1,18 +1,14 @@
-#include "Line.h"
-
+#include "Queue.h"
 #pragma once
 class MDFile
 {
 public:
 	MDFile();
 	~MDFile();
-
-	Line getLine(int at) const;
-	Line * getAllLines() const;
-	void addLine(Line);
+	void addLine(Line & l);
+	void setLine(Line & l, int at);
+	Line * getLine(int at);
 private:
-	Line * lines;
-	int size;
-	int index;
+	Queue lineq;
 };
 

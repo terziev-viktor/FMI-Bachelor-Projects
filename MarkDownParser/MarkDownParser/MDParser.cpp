@@ -8,31 +8,32 @@ MDParser::~MDParser()
 {
 }
 
-bool MDParser::load(char * path)
+bool MDParser::makeHeader(int at)
+{
+
+}
+
+bool MDParser::makeItalic(int line, int from, int to)
 {
 	return false;
 }
 
-void MDParser::makeHeader(int at)
+bool MDParser::makeBold(int line, int from, int to)
 {
+	return false;
 }
 
-void MDParser::makeItalic(int line, int from, int to)
+bool MDParser::makeCombine(int line, int from, int to)
 {
+	return false;
 }
 
-void MDParser::makeBold(int line, int from, int to)
+bool MDParser::addLine(const char * content)
 {
+	return false;
 }
 
-void MDParser::makeCombine(int line, int from, int to)
+bool MDParser::removeLine(int at)
 {
-}
-
-void MDParser::addLine(char * content)
-{
-}
-
-void MDParser::removeLine(int at)
-{
+	return false;
 }

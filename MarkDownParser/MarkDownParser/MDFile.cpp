@@ -1,26 +1,25 @@
 #include "MDFile.h"
 
-
-
 MDFile::MDFile()
 {
 }
 
-
 MDFile::~MDFile()
 {
+
 }
 
-Line MDFile::getLine(int at) const
+void MDFile::addLine(Line & l)
 {
-	return Line();
+	this->lineq.addLine(l);
 }
 
-Line * MDFile::getAllLines() const
+void MDFile::setLine(Line & l, int at)
 {
-	return nullptr;
+
 }
 
-void MDFile::addLine(Line)
+Line * MDFile::getLine(int at)
 {
+	return this->lineq.getLine(at);
 }
