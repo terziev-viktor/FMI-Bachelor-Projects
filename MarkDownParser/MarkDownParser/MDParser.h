@@ -10,8 +10,9 @@ public:
 	bool makeItalic(int line, int from, int to);
 	bool makeBold(int line, int from, int to);
 	bool makeCombine(int line, int from, int to);
-	bool addLine(const char * content);
+	bool addLine(char * content);
 	bool removeLine(int at);
+	char * pop();
 private:
 	MDFile file;
 };

@@ -1,18 +1,24 @@
+#pragma once
 #include "MDParser.h"
 #include "Command.h"
 
-#pragma once
 class TextTransformator
 {
 public:
 	TextTransformator();
 	~TextTransformator();
 
-	bool load(char * path);
+	bool load(const char * path);
 
 	bool execCommand(char * command);
+
+	bool save();
 private:
+	char path[200];
+	char fileName[200];
+	bool setPath(const char*p);
 	MDParser parser;
+
 	bool exec(Command c);
 };
 

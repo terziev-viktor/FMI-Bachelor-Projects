@@ -10,34 +10,27 @@ TextTransformator::~TextTransformator()
 {
 }
 
-bool TextTransformator::load(char * path)
+bool TextTransformator::load(const char * path)
 {
 	std::ifstream in;
 	in.open(path);
 	if (!in)
 	{
 		in.close();
-		std::ofstream out;
-		out.open(path);
-		out.close();
-		in.open(path);
-	}
-	if (!in)
-	{
-		in.close();
 		return false;
 	}
 
-	char buffer[1024];
+	char buffer[1025]; // max 1024 symbols + '\0'
 	while (true)
 	{
-		in.getline(buffer, 1024);
+		in.getline(buffer, 1025);
 		if (in.eof())
 		{
 			break;
 		}
 		this->parser.addLine(buffer);
 	}
+	this->setPath(path);
 	return true;
 }
 
@@ -50,7 +43,51 @@ bool TextTransformator::execCommand(char * command)
 			return this->exec((Command)i);
 		}
 	}
+	return false;
+}
+
+bool TextTransformator::save()
+{
+	std::ofstream file;
+	file.open(fileName);
+	if (!file)
+	{
+		file.close();
+		return false;
+	}
+
+	char * line = this->parser.pop();
+	while (line != nullptr)
+	{
+		file << line << std::endl;
+		line = this->parser.pop();
+	}
+	file.close();
 	return true;
+}
+
+bool TextTransformator::setPath(const char * p)
+{
+	int len = strlen(p);
+	if (len >= 200)
+	{
+		return false;
+	}
+	for (int i = 0; i < len; i++)
+	{
+		path[i] = p[i];
+	}
+	path[len] = '\0';
+	for (int i = 0; i < len - 4; i++)
+	{
+		fileName[i] = path[i];
+	}
+	fileName[len - 4] = '.';
+	fileName[len - 3] = 'm';
+	fileName[len - 2] = 'd';
+	fileName[len - 1] = '\0';
+	return true;
+
 }
 
 bool TextTransformator::exec(Command c)

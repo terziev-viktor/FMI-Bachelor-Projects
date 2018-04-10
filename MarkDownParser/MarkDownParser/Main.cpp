@@ -20,7 +20,7 @@ void Run(TextTransformator & transformator)
 
 int main()
 {
-	/*char path[1024];
+	char path[1024];
 	cin >> path;
 	TextTransformator transformator;
 	bool loaded = transformator.load(path);
@@ -31,8 +31,8 @@ int main()
 		loaded = transformator.load(path);
 	}
 
-	Run(transformator);*/
+	Run(transformator);
 
-
+	transformator.save();
 	return 0;
 }

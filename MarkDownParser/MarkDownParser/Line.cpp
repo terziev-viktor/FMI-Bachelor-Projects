@@ -5,24 +5,19 @@
 Line::Line()
 {
 	this->size = 0;
-	this->index = 0;
 	this->isLoaded = false;
 }
 
-Line::Line(char * content)
+Line::Line(const char * content)
 {
-	this->buffer = new char[this->INIT_SIZE];
-	this->size = this->INIT_SIZE;
-	this->index = 0;
-	strcpy_s(buffer, sizeof(char) * this->INIT_SIZE, content);
-	this->isLoaded = true;
+	this->isLoaded = false;
+	this->load(content);
 }
 
 Line::Line(const Line & l)
 {
-	this->index = l.index;
 	this->size = l.size;
-	for (int i = 0; i < index; i++)
+	for (int i = 0; i < this->size; i++)
 	{
 		this->buffer[i] = l.getChar(i);
 	}
@@ -40,13 +35,19 @@ bool Line::getIsLoaded() const
 
 void Line::load(const char * content)
 {
-	strcpy_s(buffer, sizeof(char) * this->INIT_SIZE, content);
-	this->isLoaded = true;
+	if (!this->isLoaded)
+	{
+		this->size = strlen(content) + 1;
+		this->buffer = new char[size];
+		strcpy_s(buffer, size, content);
+		this->buffer[this->size - 1] = '\0';
+		this->isLoaded = true;
+	}
 }
 
 bool Line::setChar(int at, char ch)
 {
-	if (at < this->index && at >= 0)
+	if (at < this->size - 1 && at >= 0)
 	{
 		this->buffer[at] = ch;
 		return true;
@@ -54,41 +55,36 @@ bool Line::setChar(int at, char ch)
 	return false;
 }
 
-void Line::addChar(char ch)
-{
-	if (this->index == size)
-	{
-		this->expand(1);
-	}
-	this->buffer[this->index] = ch;
-	++this->index;
-}
-
 char Line::getChar(int at) const
 {
 	return this->buffer[at];
 }
 
-void Line::cpy(char * dest)
+int Line::getSize() const
 {
-	for (int i = 0; i < this->index; i++)
-	{
-		dest[i] = this->buffer[i];
-	}
+	return this->size;
 }
 
-void Line::expand(int n)
+int Line::getLength() const
 {
-	char * expanded = new char[size + n];
-	this->size += n;
-	this->cpy(expanded);
+	return this->size - 1;
+}
+
+void Line::setNewContent(char * newbuffer, int size)
+{
+	if (newbuffer == nullptr)
+	{
+		return;
+	}
+
 	delete[] this->buffer;
-	this->buffer = expanded;
+	this->buffer = newbuffer;
+	this->size = size;
 }
 
 void Line::print()
 {
-	for (int i = 0; i < this->index; i++)
+	for (int i = 0; i < this->size; i++)
 	{
 		std::cout << buffer[i];
 	}

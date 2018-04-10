@@ -5,9 +5,10 @@ class MDFile
 public:
 	MDFile();
 	~MDFile();
-	void addLine(Line & l);
-	void setLine(Line & l, int at);
+	void addLine(char * content);
+	void removeLine(int at);
 	Line * getLine(int at);
+	char * pop();
 private:
 	Queue lineq;
 };

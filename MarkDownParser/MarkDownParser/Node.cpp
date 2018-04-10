@@ -3,14 +3,15 @@
 Node::Node()
 {
 	this->next = nullptr;
-	this->prev = nullptr;
+	this->line = nullptr;
 }
 
 Node::~Node()
 {
-	delete this->next;
-	delete this->prev;
-	delete this->line;
+	if (this->line != nullptr)
+	{
+		delete this->line;
+	}
 }
 
 Node * Node::getNext()
@@ -18,19 +19,9 @@ Node * Node::getNext()
 	return this->next;
 }
 
-Node * Node::getPrev()
-{
-	return this->prev;
-}
-
 void Node::setNext(Node * nexLine)
 {
 	this->next = nexLine;
-}
-
-void Node::setPrev(Node * prev)
-{
-	this->prev = prev;
 }
 
 Line * Node::getLine()
@@ -38,7 +29,7 @@ Line * Node::getLine()
 	return this->line;
 }
 
-void Node::setLine(Line & l)
+void Node::setLine(Line * l)
 {
-	this->line = new Line(l);
+	this->line = l;
 }
