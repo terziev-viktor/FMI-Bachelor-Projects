@@ -11,20 +11,36 @@ MDParser::~MDParser()
 
 bool MDParser::makeHeader(int at)
 {
-	Line * forparsing = this->file.getLine(at);
+	if (at <= 0)
+	{
+		return false;
+	}
+	Line * forparsing = this->file.getLine(at - 1);
 	int size = forparsing->getSize();
 	char * heading = new char[size + 2];
 	heading[0] = '#';
+	heading[1] = ' ';
 	for (int i = 0; i < size; i++)
 	{
-		heading[i + 1] = forparsing->getChar(i);
+		heading[i + 2] = forparsing->getChar(i);
 	}
-	heading[size + 1] = '\0';
+	heading[size + 2] = '\0';
 	forparsing->setNewContent(heading, size + 1);
 	return true;
 }
 
 bool MDParser::makeItalic(int at, int from, int to)
+{
+	if (from <= 0 || to <= 0)
+	{
+		return false;
+	}
+	// args are 0 based so we pass at and from  -1 but when we code a for loop we have '<' as a condition, not '<=', so we pass to (in otherwords to is exclusive)
+	return this->setEmphasis(at - 1, from - 1, to, "*", 1);
+	return false;
+}
+
+bool MDParser::setEmphasis(int at, int from, int to, const char * emp, int empSize)
 {
 	if (from >= to)
 	{
@@ -36,26 +52,44 @@ bool MDParser::makeItalic(int at, int from, int to)
 	{
 		return false;
 	}
-	int newsize = size + 2; // old size + 2x'_'
+	int newsize = size + 2 * empSize; // old size + 2 * emphasis characters
 	char * newcontent = new char[newsize];
-	int i;
-	for (i = 0; i < from; i++)
+
+	int fromindex = 0, toindex = 0;
+	for (int i = 0; i <= from; i++)
 	{
-		newcontent[i] = line->getChar(i);
+		fromindex = line->getNextWordIndex(); // index of ' '
 	}
-	newcontent[i] = '_';
-	int index = i + 1;
-	for (i = from; i < to; i++)
+	for (int i = from; i < to; i++)
+	{
+		toindex = line->getNextWordIndex(); // index of ' '
+	}
+	line->resetWordIndex();
+	int index = 0;
+	for (int i = 0; i < fromindex + 1 && fromindex != 0; i++)
 	{
 		newcontent[index] = line->getChar(i);
-		index++;
+		++index;
 	}
-	newcontent[index] = '_';
-	index++;
-	for (i = to; i <= line->getLength(); i++)
+	for (int i = 0; i < empSize; i++)
 	{
-		newcontent[index] = line->getChar(i);
-		index++;
+		newcontent[index++] = emp[i];
+	}
+	if (fromindex == 0)
+	{
+		fromindex = -1;
+	}
+	for (int i = fromindex + 1; i < toindex; i++)
+	{
+		newcontent[index++] = line->getChar(i);
+	}
+	for (int i = 0; i < empSize; i++)
+	{
+		newcontent[index++] = emp[i];
+	}
+	for (int i = toindex; i < line->getLength(); i++)
+	{
+		newcontent[index++] = line->getChar(i);
 	}
 	newcontent[index] = '\0';
 	line->setNewContent(newcontent, newsize);
@@ -64,90 +98,24 @@ bool MDParser::makeItalic(int at, int from, int to)
 
 bool MDParser::makeBold(int at, int from, int to)
 {
-	if (from >= to)
+	if (from <= 0 || to <= 0)
 	{
 		return false;
 	}
-	Line * line = this->file.getLine(at);
-	int length = line->getLength();
-	if (from >= length || to >= length)
-	{
-		return false;
-	}
-	int newsize = line->getSize() + 4;
-	char * newcontent = new char[newsize]; // '*'x4 for bold + '\0'
-	int i;
-	for (i = 0; i < from; i++)
-	{
-		newcontent[i] = line->getChar(i);
-	}
-	newcontent[i] = '*';
-	int index = i + 1;
-	newcontent[index] = '*';
-	index += 1;
-	for (i = from; i < to; i++)
-	{
-		newcontent[index] = line->getChar(i);
-		index++;
-	}
-	newcontent[index] = '*';
-	index++;
-	newcontent[index] = '*';
-	index++;
-	for (i = to; i <= length; i++)
-	{
-		newcontent[index] = line->getChar(i);
-		index++;
-	}
-	newcontent[index] = '\0';
-	line->setNewContent(newcontent, newsize);
-	return true;
+	return this->setEmphasis(at - 1, from - 1, to, "**", 2);
 }
 
 bool MDParser::makeCombine(int at, int from, int to)
 {
-	if (from >= to)
+	if (from <= 0)
 	{
 		return false;
 	}
-	Line * line = this->file.getLine(at);
-	int size = line->getSize();
-	if (from >= size || to >= size)
+	if (to <= 0)
 	{
 		return false;
 	}
-	int newsize = size + 6;
-	char * newcontent = new char[newsize]; // '*'x4 for bold + 2x'_' for italic
-	int i;
-	for (i = 0; i < from; i++)
-	{
-		newcontent[i] = line->getChar(i);
-	}
-	newcontent[i] = '*';
-	int index = i + 1;
-	newcontent[index] = '*';
-	index++;
-	newcontent[index] = '_';
-	index++;
-	for (i = from; i < to; i++)
-	{
-		newcontent[index] = line->getChar(i);
-		index++;
-	}
-	newcontent[index] = '*';
-	index++;
-	newcontent[index] = '*';
-	index++;
-	newcontent[index] = '_';
-	index++;
-	for (i = to; i < line->getLength(); i++)
-	{
-		newcontent[index] = line->getChar(i);
-		index++;
-	}
-	newcontent[index] = '\0';
-	line->setNewContent(newcontent, newsize);
-	return true;
+	return this->setEmphasis(at - 1, from - 1, to, "***", 3);
 }
 
 bool MDParser::addLine(char * content)
@@ -158,7 +126,8 @@ bool MDParser::addLine(char * content)
 
 bool MDParser::removeLine(int at)
 {
-	this->file.removeLine(at);
+	// input is 1 based so we pass 0 based
+	this->file.removeLine(at - 1);
 	return true;
 }
 

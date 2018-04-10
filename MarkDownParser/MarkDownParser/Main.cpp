@@ -1,6 +1,5 @@
 #include <iostream>
 #include "TextTransformator.h"
-
 using namespace std;
 
 void Run(TextTransformator & transformator)

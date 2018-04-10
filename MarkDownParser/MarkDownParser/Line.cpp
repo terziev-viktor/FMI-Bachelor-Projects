@@ -6,12 +6,14 @@ Line::Line()
 {
 	this->size = 0;
 	this->isLoaded = false;
+	this->resetWordIndex();
 }
 
 Line::Line(const char * content)
 {
 	this->isLoaded = false;
 	this->load(content);
+	this->resetWordIndex();
 }
 
 Line::Line(const Line & l)
@@ -21,6 +23,7 @@ Line::Line(const Line & l)
 	{
 		this->buffer[i] = l.getChar(i);
 	}
+	this->resetWordIndex();
 }
 
 Line::~Line()
@@ -40,7 +43,7 @@ void Line::load(const char * content)
 		this->size = strlen(content) + 1;
 		this->buffer = new char[size];
 		strcpy_s(buffer, size, content);
-		this->buffer[this->size - 1] = '\0';
+		//this->buffer[this->size - 1] = '\0';
 		this->isLoaded = true;
 	}
 }
@@ -80,6 +83,25 @@ void Line::setNewContent(char * newbuffer, int size)
 	delete[] this->buffer;
 	this->buffer = newbuffer;
 	this->size = size;
+}
+
+int Line::getNextWordIndex()
+{
+	int index = this->wordindex;
+	while (wordindex < this->getLength() && this->buffer[wordindex] == ' ')
+	{
+		wordindex++;
+	}
+	while (wordindex < this->getLength() && this->buffer[wordindex] != ' ')
+	{
+		wordindex++;
+	}
+	return index;
+}
+
+void Line::resetWordIndex()
+{
+	this->wordindex = 0;
 }
 
 void Line::print()

@@ -16,10 +16,13 @@ public:
 	// number of symbols on the line
 	int getLength() const;
 	void setNewContent(char * newbuffer, int size);
+	int getNextWordIndex();
+	void resetWordIndex();
 	void print();
 private:
 	char * buffer;
 	int size;
 	bool isLoaded;
+	int wordindex;
 };
 
