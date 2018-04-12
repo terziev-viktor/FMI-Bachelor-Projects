@@ -13,22 +13,14 @@ Line::Line(const char * content)
 {
 	this->isLoaded = false;
 	this->load(content);
-	this->resetWordIndex();
-}
-
-Line::Line(const Line & l)
-{
-	this->size = l.size;
-	for (int i = 0; i < this->size; i++)
-	{
-		this->buffer[i] = l.getChar(i);
-	}
-	this->resetWordIndex();
 }
 
 Line::~Line()
 {
-	delete[] this->buffer;
+	if (this->isLoaded)
+	{
+		delete[] this->buffer;
+	}
 }
 
 bool Line::getIsLoaded() const
@@ -40,22 +32,17 @@ void Line::load(const char * content)
 {
 	if (!this->isLoaded)
 	{
-		this->size = strlen(content) + 1;
-		this->buffer = new char[size];
-		strcpy_s(buffer, size, content);
-		//this->buffer[this->size - 1] = '\0';
+		this->length = strlen(content);
+		this->size = this->length + 1;
+		this->buffer = new char[this->size];
+		for (int i = 0; i < this->length; i++)
+		{
+			this->buffer[i] = content[i];
+		}
+		this->buffer[this->length] = '\0';
 		this->isLoaded = true;
+		this->resetWordIndex();
 	}
-}
-
-bool Line::setChar(int at, char ch)
-{
-	if (at < this->size - 1 && at >= 0)
-	{
-		this->buffer[at] = ch;
-		return true;
-	}
-	return false;
 }
 
 char Line::getChar(int at) const
@@ -70,19 +57,21 @@ int Line::getSize() const
 
 int Line::getLength() const
 {
-	return this->size - 1;
+	return this->length;
 }
 
-void Line::setNewContent(char * newbuffer, int size)
+bool Line::setNewContent(char * newbuffer, int size)
 {
-	if (newbuffer == nullptr)
+	if (!this->isLoaded)
 	{
-		return;
+		return false;
 	}
-
 	delete[] this->buffer;
 	this->buffer = newbuffer;
 	this->size = size;
+	this->length = size - 1;
+	this->resetWordIndex();
+	return true;
 }
 
 int Line::getNextWordIndex()
@@ -101,7 +90,23 @@ int Line::getNextWordIndex()
 
 void Line::resetWordIndex()
 {
-	this->wordindex = 0;
+	if (this->isHeading())
+	{
+		this->wordindex = 1;
+	}
+	else
+	{
+		this->wordindex = 0;
+	}
+}
+
+bool Line::isHeading()
+{
+	if (this->isLoaded)
+	{
+		return this->buffer[0] == '#';
+	}
+	return false;
 }
 
 void Line::print()

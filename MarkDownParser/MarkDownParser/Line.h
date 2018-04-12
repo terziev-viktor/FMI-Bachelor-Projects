@@ -4,24 +4,25 @@ class Line
 public:
 	Line();
 	Line(const char*);
-	Line(const Line & l);
 	~Line();
 
 	bool getIsLoaded() const;
 	void load(const char*);
-	bool setChar(int at, char ch);
 	char getChar(int at) const;
 	// size of buffer
 	int getSize() const;
 	// number of symbols on the line
 	int getLength() const;
-	void setNewContent(char * newbuffer, int size);
+	bool setNewContent(char * newbuffer, int size);
 	int getNextWordIndex();
 	void resetWordIndex();
+	bool isHeading();
+	// Prints the buffer on the std output. This method is for debug purpuses.
 	void print();
 private:
 	char * buffer;
 	int size;
+	int length;
 	bool isLoaded;
 	int wordindex;
 };

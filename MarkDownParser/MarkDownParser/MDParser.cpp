@@ -16,17 +16,16 @@ bool MDParser::makeHeader(int at)
 		return false;
 	}
 	Line * forparsing = this->file.getLine(at - 1);
-	int size = forparsing->getSize();
-	char * heading = new char[size + 2];
+	int len = forparsing->getLength(); // strlen of content
+	char * heading = new char[len + 3];
 	heading[0] = '#';
 	heading[1] = ' ';
-	for (int i = 0; i < size; i++)
+	for (int i = 0; i < len; i++)
 	{
 		heading[i + 2] = forparsing->getChar(i);
 	}
-	heading[size + 2] = '\0';
-	forparsing->setNewContent(heading, size + 1);
-	return true;
+	heading[len + 2] = '\0';
+	return forparsing->setNewContent(heading, len + 3);
 }
 
 bool MDParser::makeItalic(int at, int from, int to)
@@ -52,7 +51,7 @@ bool MDParser::setEmphasis(int at, int from, int to, const char * emp, int empSi
 	{
 		return false;
 	}
-	int newsize = size + 2 * empSize; // old size + 2 * emphasis characters
+	int newsize = size + 2 * empSize + 1; // old size + 2 * emphasis characters + '\0'
 	char * newcontent = new char[newsize];
 
 	int fromindex = 0, toindex = 0;
@@ -87,7 +86,7 @@ bool MDParser::setEmphasis(int at, int from, int to, const char * emp, int empSi
 	{
 		newcontent[index++] = emp[i];
 	}
-	for (int i = toindex; i < line->getLength(); i++)
+	for (int i = toindex; i < size; i++)
 	{
 		newcontent[index++] = line->getChar(i);
 	}
