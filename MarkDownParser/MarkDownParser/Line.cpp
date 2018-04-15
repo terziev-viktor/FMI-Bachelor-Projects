@@ -32,14 +32,13 @@ void Line::load(const char * content)
 {
 	if (!this->isLoaded)
 	{
-		this->length = strlen(content);
-		this->size = this->length + 1;
+		this->size = strlen(content) + 1;
 		this->buffer = new char[this->size];
-		for (int i = 0; i < this->length; i++)
+		for (int i = 0; i < this->size - 1; i++)
 		{
 			this->buffer[i] = content[i];
 		}
-		this->buffer[this->length] = '\0';
+		this->buffer[this->size - 1] = '\0';
 		this->isLoaded = true;
 		this->resetWordIndex();
 	}
@@ -57,7 +56,7 @@ int Line::getSize() const
 
 int Line::getLength() const
 {
-	return this->length;
+	return this->size - 1;
 }
 
 bool Line::setNewContent(char * newbuffer, int size)
@@ -69,7 +68,6 @@ bool Line::setNewContent(char * newbuffer, int size)
 	delete[] this->buffer;
 	this->buffer = newbuffer;
 	this->size = size;
-	this->length = size - 1;
 	this->resetWordIndex();
 	return true;
 }

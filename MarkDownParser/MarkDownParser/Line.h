@@ -22,7 +22,6 @@ public:
 private:
 	char * buffer;
 	int size;
-	int length;
 	bool isLoaded;
 	int wordindex;
 };

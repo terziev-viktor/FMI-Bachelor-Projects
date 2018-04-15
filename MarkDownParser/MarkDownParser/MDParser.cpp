@@ -17,7 +17,8 @@ bool MDParser::makeHeader(int at)
 	}
 	Line * forparsing = this->file.getLine(at - 1);
 	int len = forparsing->getLength(); // strlen of content
-	char * heading = new char[len + 3];
+	int newsize = len + 3; // symbols + heading symbols + '\0'
+	char * heading = new char[newsize];
 	heading[0] = '#';
 	heading[1] = ' ';
 	for (int i = 0; i < len; i++)
@@ -25,7 +26,7 @@ bool MDParser::makeHeader(int at)
 		heading[i + 2] = forparsing->getChar(i);
 	}
 	heading[len + 2] = '\0';
-	return forparsing->setNewContent(heading, len + 3);
+	return forparsing->setNewContent(heading, newsize);
 }
 
 bool MDParser::makeItalic(int at, int from, int to)
@@ -45,13 +46,15 @@ bool MDParser::setEmphasis(int at, int from, int to, const char * emp, int empSi
 	{
 		return false;
 	}
+
 	Line * line = this->file.getLine(at);
-	int size = line->getSize();
+	int size = line->getSize(); // size of buffer in line
 	if (from >= size || to >= size)
 	{
 		return false;
 	}
-	int newsize = size + 2 * empSize + 1; // old size + 2 * emphasis characters + '\0'
+
+	int newsize = size + 2 * empSize; // old size + 2 * emphasis characters + '\0'
 	char * newcontent = new char[newsize];
 
 	int fromindex = 0, toindex = 0;
@@ -64,15 +67,20 @@ bool MDParser::setEmphasis(int at, int from, int to, const char * emp, int empSi
 		toindex = line->getNextWordIndex(); // index of ' '
 	}
 	line->resetWordIndex();
+
+
 	int index = 0;
 	for (int i = 0; i < fromindex + 1 && fromindex != 0; i++)
 	{
 		newcontent[index] = line->getChar(i);
 		++index;
 	}
+
+	
 	for (int i = 0; i < empSize; i++)
 	{
-		newcontent[index++] = emp[i];
+		newcontent[index] = emp[i];
+		++index;
 	}
 	if (fromindex == 0)
 	{
@@ -80,17 +88,19 @@ bool MDParser::setEmphasis(int at, int from, int to, const char * emp, int empSi
 	}
 	for (int i = fromindex + 1; i < toindex; i++)
 	{
-		newcontent[index++] = line->getChar(i);
+		newcontent[index] = line->getChar(i);
+		++index;
 	}
 	for (int i = 0; i < empSize; i++)
 	{
-		newcontent[index++] = emp[i];
+		newcontent[index] = emp[i];
+		++index;
 	}
 	for (int i = toindex; i < size; i++)
 	{
-		newcontent[index++] = line->getChar(i);
+		newcontent[index] = line->getChar(i);
+		++index;
 	}
-	newcontent[index] = '\0';
 	line->setNewContent(newcontent, newsize);
 	return true;
 }
