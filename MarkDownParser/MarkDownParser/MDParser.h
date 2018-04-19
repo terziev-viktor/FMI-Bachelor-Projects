@@ -15,6 +15,8 @@ public:
 	bool makeCombine(int line, int from, int to);
 	bool addLine(char * content);
 	bool removeLine(int at);
+	// Deletes the root. Returns a pointer to a dynamically allocated array of chars with the content of the root.
+	// User should delete the memory.
 	char * pop();
 private:
 	MDFile file;

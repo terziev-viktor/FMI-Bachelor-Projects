@@ -60,6 +60,7 @@ bool TextTransformator::save()
 	while (line != nullptr)
 	{
 		file << line << std::endl;
+		delete[] line;
 		line = this->parser.pop();
 	}
 	file.close();
