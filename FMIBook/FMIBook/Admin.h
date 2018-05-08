@@ -10,5 +10,6 @@ public:
 	void unblock();
 	void addUser();
 	void removeUser();
+	void remove();
 };
 

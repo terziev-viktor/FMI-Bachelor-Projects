@@ -7,7 +7,7 @@ public:
 	User();
 	~User();
 	void post();
-	void remove();
+	virtual void remove();
 	void changeNickname();
 };
 

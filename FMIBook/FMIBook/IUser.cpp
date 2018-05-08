@@ -1,5 +1,5 @@
+#include <iostream>
 #include "IUser.h"
-
 
 
 IUser::IUser()
@@ -21,7 +21,12 @@ unsigned short IUser::getAge()
 	return this->age;
 }
 
-bool IUser::isBlocked()
+void IUser::setNickname(char * value)
 {
-	return false;
+	strcpy_s(this->nickname, 100, value);
+}
+
+void IUser::setAge(unsigned short age)
+{
+	this->age = age;
 }
