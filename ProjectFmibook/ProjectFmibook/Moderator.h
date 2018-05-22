@@ -12,7 +12,13 @@ namespace fmi
 			~Moderator();
 			void block(User * user);
 			void unblock(User * user);
-			//virtual void removePost(unsigned int id, User * owner);
+
+			static unsigned int getObjectsCount();
+
+			void removePost(unsigned int id, List<Post> & posts);
+			
+		private:
+			static unsigned int OBJ_COUNT;
 		};
 	}
 }

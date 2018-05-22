@@ -8,9 +8,11 @@ namespace fmi
 		class ImgPost : public Post
 		{
 		public:
-			ImgPost(char * content, unsigned int id);
+			ImgPost(const char * content, unsigned int id, unsigned int ownerId);
 			~ImgPost();
 			const char * asHTML() const;
+		private:
+			static const unsigned int MAX_HTML_SIZE = MAX_CONTENT + 12;
 		};
 
 	}

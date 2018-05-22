@@ -1,11 +1,10 @@
 #include "ImgPost.h"
-#include <string>
+#include <iostream>
 
 using fmi::posts::ImgPost;
 
-
-ImgPost::ImgPost(char * content, unsigned int id)
-	:Post(content, id)
+fmi::posts::ImgPost::ImgPost(const char * content, unsigned int id, unsigned int ownerId)
+	:Post(content, id, ownerId)
 {
 }
 
@@ -17,11 +16,11 @@ const char * ImgPost::asHTML() const
 {
 	// result should look something like this:
 	// <img src='content'>
-	char result[MAX_CONTENT + 12]; // max content + space for html tag <img .. >
+	char result[MAX_HTML_SIZE]; // max content + space for html tag <img .. >
 	result[0] = '\0';
-	strcat_s(result, "<img src='");
-	strcat_s(result, this->getContent());
-	strcat_s(result, "'>");
+	strcat_s(result, MAX_HTML_SIZE, "<img src='");
+	strcat_s(result, MAX_HTML_SIZE, this->getContent());
+	strcat_s(result, MAX_HTML_SIZE, "'>");
 
 	return result;
 }

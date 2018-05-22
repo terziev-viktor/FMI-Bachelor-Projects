@@ -28,14 +28,16 @@ User & fmi::users::User::operator=(const User & other)
 	return *this;
 }
 
-void fmi::users::User::addPost(fmi::posts::Post * post)
+void fmi::users::User::addPost(fmi::posts::Post * post, fmi::tools::List<fmi::posts::Post> & posts)
 {
-	this->posts.add(post);
+	if (this->blocked)
+	{
+		throw "Blocked users can't post";
+	}
+	posts.add(post);
 }
 
-
-
-bool fmi::users::User::isBlocked() const
+const bool fmi::users::User::isBlocked() const
 {
 	return this->blocked;
 }
@@ -62,4 +64,9 @@ void fmi::users::User::setAge(unsigned short age)
 const unsigned short fmi::users::User::getAge() const
 {
 	return this->age;
+}
+
+const unsigned int fmi::users::User::getId() const
+{
+	return this->id;
 }

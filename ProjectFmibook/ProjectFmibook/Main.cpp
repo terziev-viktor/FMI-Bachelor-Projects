@@ -12,9 +12,8 @@ using std::cerr;
 
 void Run(Fmibook & fmi)
 {
-	char actor[1024];
+	char actor[User::MAX_NICKNAME_LENGTH];
 	char command[50];
-	char subject[1024];
 	
 	cin >> actor;
 	while (strcmp(actor, COMMAND_QUIT) != 0)
@@ -110,13 +109,16 @@ void Run(Fmibook & fmi)
 			cin >> posttype;
 			char content[Post::MAX_CONTENT];
 			cin >> content;
+			
 			if (strcmp(posttype, POST_TYPE_IMAGE) == 0)
 			{
 				fmi.postImage(actor, content);
 			}
 			else if (strcmp(posttype, POST_TYPE_LINK) == 0)
 			{
-				fmi.postLink(actor, content);
+				char descr[LinkPost::MAX_DESCR_LEN];
+				cin.getline(descr, LinkPost::MAX_DESCR_LEN);
+				fmi.postLink(actor, content, descr);
 			}
 			else if (strcmp(posttype, POST_TYPE_TEXT) == 0)
 			{
@@ -142,17 +144,38 @@ void Run(Fmibook & fmi)
 			}
 			break;
 		}
+		case 7: // view post
+		{
+			unsigned int id;
+			cin >> id;
+			fmi.viewPost(actor, id);
+			break;
+		}
+		case 8: // view_all_posts
+		{
+			char ofwho[100];
+			cin >> ofwho;
+			fmi.viewAllPosts(actor, ofwho);
+			break;
+		}
+		case 9: // info
+		{
+			fmi.info();
+			break;
+		}
 		default:
 		{
 			cout << "No such command" << endl;
 			break;
 		}
 		}
+		cin >> actor;
 	}
 }
 
 int main()
 {
-	
+	Fmibook fmi("Admin", 22);
+	Run(fmi);
 	return 0;
 }

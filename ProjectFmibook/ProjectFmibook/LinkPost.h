@@ -8,9 +8,14 @@ namespace fmi
 		class LinkPost : public Post
 		{
 		public:
-			LinkPost(char * content, unsigned int id);
+			LinkPost(const char * url, const char * description, unsigned int id, unsigned int ownerId);
 			~LinkPost();
+			static const unsigned int MAX_DESCR_LEN = 100;
 			const char * asHTML() const;
+			const char * getDescription() const;
+		private:
+			static const unsigned int MAX_HTML_SIZE = MAX_CONTENT + MAX_DESCR_LEN + 15;  // max content + space for html tag <a href='..'></a>
+			char description[MAX_DESCR_LEN];
 		};
 
 

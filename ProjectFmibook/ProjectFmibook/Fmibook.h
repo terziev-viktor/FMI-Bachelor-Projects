@@ -32,28 +32,33 @@ namespace fmi
 	const char POST_TYPE_LINK[] = "[url]";
 	const char POST_TYPE_TEXT[] = "[text]";
 
+	// This class only shows how Users and Posts hierarchies work
+	// It controls only method calls. Logic is in Users and Posts classes
+	// This shows that Im using currect design patters for the project
 	class Fmibook
 	{
 	public:
-		Fmibook(const char * adminNickname, unsigned short adminAge);
+		Fmibook(const const char * adminNickname, unsigned short adminAge);
 		~Fmibook();
 		// Only the admin can do these---
-		void addModerator(char * actor, char * nickname, unsigned short age);
-		void addUser(char * actor, char * nickname, unsigned short age);
-		void removeUser(char * actor, char * who);
+		void addModerator(const char * actor, const char * nickname, unsigned short age);
+		void addUser(const const char * actor, const const char * nickname, unsigned short age);
+		void removeUser(const char * actor, const char * who);
 		// ----------
-		void block(char * actor, char * who);
-		void unblock(char * actor, char * who);
-		void postImage(char * actor, char * content);
-		void postLink(char * actor, char * content);
-		void postText(char * actor, char * content);
-		void removePost(char * actor, unsigned int id);
-
+		void block(const char * actor, const char * who);
+		void unblock(const char * actor, const char * who);
+		void postImage(const char * actor, const char * content);
+		void postLink(const char * actor, const char * url, const char * desctiption);
+		void postText(const char * actor, const char * content);
+		void removePost(const char * actor, unsigned int id);
+		void viewPost(const char * actor, unsigned int id);
+		void viewAllPosts(const char * actor, const char * ofwho);
+		void info();
 	private:
 		List<User> users;
+		List<Post> posts;
 		unsigned int nextId;
-
-		User * getUserByNickname(char * nickname);
+		User * getUserByNickname(const char * nickname);
 	};
 
 }

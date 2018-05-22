@@ -11,6 +11,10 @@ namespace fmi
 		public:
 			// return a pointer because Im storing pointers in my data collection (List<T>)
 			static Admin * getInstancePointer(const char * nickname, unsigned short age, unsigned int id);
+
+			// Only the admin can add new users to the list, or remove users from the list
+			void addUser(User * userToAdd, List<User> & users);
+			void removeUser(unsigned int id, List<User> & users);
 		private:
 			Admin();
 			Admin(const char * nickname, unsigned short age, unsigned int id);

@@ -3,10 +3,12 @@
 
 using fmi::posts::Post;
 
-Post::Post(char * content, unsigned int id)
+
+fmi::posts::Post::Post(const char * content, unsigned int id, unsigned int ownerId)
 {
 	this->setContent(content);
 	this->id = id;
+	this->ownerId = ownerId;
 }
 
 Post::~Post()
@@ -21,6 +23,11 @@ const char * Post::getContent() const
 const unsigned int Post::getId() const
 {
 	return this->id;
+}
+
+const unsigned int fmi::posts::Post::getOwnerId() const
+{
+	return this->ownerId;
 }
 
 void Post::setContent(const char * content)

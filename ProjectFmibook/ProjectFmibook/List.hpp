@@ -1,6 +1,8 @@
 #pragma once
 #include <stdexcept>
-
+#include <iostream>
+using std::cout;
+using std::endl;
 namespace fmi
 {
 	namespace tools
@@ -18,6 +20,8 @@ namespace fmi
 			// returns the item on <index> place. Throws out_of_range exception for invalid index
 			// I dont return a const item because Fmibook should be able to edit items;
 			T * getAt(unsigned int index) const;
+			void removeAt(unsigned int index);
+
 			bool isEmplty();
 			// sets the index to 0. Does not delete objects
 			void clear();
@@ -43,6 +47,8 @@ namespace fmi
 		template<class T>
 		inline List<T>::~List()
 		{
+			//for debug purpuses
+			//cout << "~List()" << endl;
 			this->deleteBufferContent();
 		}
 		template<class T>
@@ -71,6 +77,22 @@ namespace fmi
 		}
 
 		template<class T>
+		inline void List<T>::removeAt(unsigned int index)
+		{
+			if (this->index >= this->size)
+			{
+				throw std::out_of_range("Index of of range.");
+			}
+
+			delete this->buffer[index]; // deleting object at index
+			for (unsigned int i = index; i < this->count() - 1; i++) // shift left all other 
+			{
+				buffer[i] = buffer[i + 1];
+			}
+			this->index = this->index - 1;
+		}
+
+		template<class T>
 		inline bool List<T>::isEmplty()
 		{
 			return this->index == 0;
@@ -79,6 +101,10 @@ namespace fmi
 		template<class T>
 		inline void List<T>::clear()
 		{
+			for (int i = 0; i < this->index; i++)
+			{
+				delete this->buffer[i];
+			}
 			this->index = 0;
 		}
 
