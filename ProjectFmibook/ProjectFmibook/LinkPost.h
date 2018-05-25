@@ -14,7 +14,7 @@ namespace fmi
 			const char * asHTML() const;
 			const char * getDescription() const;
 		private:
-			static const unsigned int MAX_HTML_SIZE = MAX_CONTENT + MAX_DESCR_LEN + 15;  // max content + space for html tag <a href='..'></a>
+			static const unsigned int MAX_HTML_SIZE = MAX_CONTENT + MAX_DESCR_LEN + 16;  // max content + space for html tag <a href='..'></a> + \0
 			char description[MAX_DESCR_LEN];
 		};
 

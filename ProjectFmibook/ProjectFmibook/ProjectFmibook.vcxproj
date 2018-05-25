@@ -100,6 +100,11 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Admin.cpp" />
     <ClCompile Include="BasicUser.cpp" />
@@ -115,6 +120,7 @@
   <ItemGroup>
     <ClInclude Include="Admin.h" />
     <ClInclude Include="BasicUser.h" />
+    <ClInclude Include="DynamicArray.hpp" />
     <ClInclude Include="Fmibook.h" />
     <ClInclude Include="ImgPost.h" />
     <ClInclude Include="LinkPost.h" />

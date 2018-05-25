@@ -12,7 +12,7 @@ namespace fmi
 			~ImgPost();
 			const char * asHTML() const;
 		private:
-			static const unsigned int MAX_HTML_SIZE = MAX_CONTENT + 12;
+			static const unsigned int MAX_HTML_SIZE = MAX_CONTENT + 13; // <img src='...'> + \0
 		};
 
 	}

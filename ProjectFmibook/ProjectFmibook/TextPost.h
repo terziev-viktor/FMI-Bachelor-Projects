@@ -11,7 +11,7 @@ namespace fmi
 			~TextPost();
 			const char * asHTML() const;
 		private:
-			static const unsigned int MAX_HTML_SIZE = MAX_CONTENT + 7;
+			static const unsigned int MAX_HTML_SIZE = MAX_CONTENT + 8; // <p></p> + \0
 		};
 
 	}

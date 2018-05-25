@@ -31,19 +31,19 @@ unsigned int fmi::users::Moderator::getObjectsCount()
 	return Moderator::OBJ_COUNT;
 }
 
-void fmi::users::Moderator::removePost(unsigned int id, List<Post>& posts)
+void fmi::users::Moderator::removePost(unsigned int id, DynamicArray<Post> * posts)
 {
-	unsigned int count = posts.count();
+	unsigned int count = posts->count();
 	for (unsigned int i = 0; i < count; i++)
 	{
-		Post * p = posts.getAt(i);
+		Post * p = posts->getAt(i);
 		if (p->getId() == id)
 		{
-			posts.removeAt(i);
+			posts->removeAt(i);
 			return;
 		}
 	}
-	throw std::invalid_argument("This user has no post with this id");
+	throw "There is no post with this id";
 }
 
 //void fmi::users::Moderator::removePost(unsigned int id, User * owner)

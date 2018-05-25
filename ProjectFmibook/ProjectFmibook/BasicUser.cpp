@@ -15,24 +15,24 @@ BasicUser::~BasicUser()
 	
 }
 
-void fmi::users::BasicUser::removePost(unsigned int id, List<Post>& posts)
+void fmi::users::BasicUser::removePost(unsigned int id, DynamicArray<Post> * posts)
 {
-	unsigned int count = posts.count();
+	unsigned int count = posts->count();
 	for (unsigned int i = 0; i < count; i++)
 	{
-		Post * p = posts.getAt(i);
+		Post * p = posts->getAt(i);
 		if (p->getId() == id)
 		{
 			if (p->getOwnerId() == this->id)
 			{
-				posts.removeAt(i);
+				posts->removeAt(i);
 				return;
 			}
 			else
 			{
-				throw std::invalid_argument("This user is not the owner of the post");
+				throw "This user is not the owner of the post";
 			}
 		}
 	}
-	throw std::invalid_argument("This user has no post with this id");
+	throw "This user has no post with this id";
 }

@@ -1,12 +1,12 @@
 #pragma once
 #include "Post.h"
-#include "List.hpp"
+#include "DynamicArray.hpp"
 
 namespace fmi
 {
 	namespace users
 	{
-		using fmi::tools::List;
+		using fmi::tools::DynamicArray;
 		using fmi::posts::Post;
 
 		class User
@@ -29,9 +29,9 @@ namespace fmi
 			friend class Moderator;
 			friend class Admin;
 
-			void changeNickname(const char * newNickName, List<User> & users);
-			void addPost(Post * post, List<Post> & posts);
-			virtual void removePost(unsigned int id, List<Post> & posts) = 0;
+			void changeNickname(const char * newNickName, DynamicArray<User> * users);
+			void addPost(Post * post, DynamicArray<Post> * posts);
+			virtual void removePost(unsigned int id, DynamicArray<Post> * posts) = 0;
 
 		protected:
 			bool blocked;

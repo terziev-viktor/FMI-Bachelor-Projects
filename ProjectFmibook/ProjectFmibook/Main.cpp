@@ -44,9 +44,9 @@ void Run(Fmibook & fmi)
 				fmi.addModerator(actor, nickname, age);
 				cout << actor << " added moderator " << nickname << endl;
 			}
-			catch (const std::exception& err)
+			catch (const char * err)
 			{
-				cerr << err.what() << endl;
+				cerr << err << endl;
 			}
 
 			break;
@@ -64,9 +64,9 @@ void Run(Fmibook & fmi)
 				fmi.addUser(actor, nickname, age);
 				cout << actor << " added user " << nickname << endl;
 			}
-			catch (const std::exception& err)
+			catch (const char * err)
 			{
-				cerr << err.what() << endl;
+				cerr << err << endl;
 			}
 			break;
 		}
@@ -80,9 +80,9 @@ void Run(Fmibook & fmi)
 				fmi.removeUser(actor, nickname);
 				cout << actor << " removed " << nickname << endl;
 			}
-			catch (const std::exception& err)
+			catch (const char * err)
 			{
-				cerr << err.what() << endl;
+				cerr << err << endl;
 			}
 			break;
 		}
@@ -96,9 +96,9 @@ void Run(Fmibook & fmi)
 				fmi.block(actor, nick);
 				cout << actor << " blocked " << nick << endl;
 			}
-			catch (const std::exception& err)
+			catch (const char * err)
 			{
-				cerr << err.what() << endl;
+				cerr << err << endl;
 			}
 			break;
 		}
@@ -112,9 +112,9 @@ void Run(Fmibook & fmi)
 				fmi.unblock(actor, who);
 				cout << actor << " unblocked " << who << endl;
 			}
-			catch (const std::exception& err)
+			catch (const char * err)
 			{
-				cerr << err.what() << endl;
+				cerr << err << endl;
 			}
 			break;
 		}
@@ -160,9 +160,9 @@ void Run(Fmibook & fmi)
 					cout << "No such type of post" << endl;
 				}
 			}
-			catch (const std::exception& err)
+			catch (const char * err)
 			{
-				cerr << err.what() << endl;
+				cerr << err << endl;
 			}
 			break;
 		}
@@ -176,9 +176,9 @@ void Run(Fmibook & fmi)
 				fmi.removePost(actor, id);
 				cout << actor << " removed post " << id << endl;
 			}
-			catch (const std::exception& err)
+			catch (const char * err)
 			{
-				cerr << err.what() << endl;
+				cerr << err << endl;
 			}
 			break;
 		}
@@ -192,9 +192,9 @@ void Run(Fmibook & fmi)
 				fmi.viewPost(actor, id);
 				cout << actor << " views post " << id << endl;
 			}
-			catch (const std::exception& err)
+			catch (const char * err)
 			{
-				cerr << err.what() << endl;
+				cerr << err << endl;
 			}
 			break;
 		}
@@ -207,9 +207,9 @@ void Run(Fmibook & fmi)
 			{
 				fmi.viewAllPosts(actor, ofwho);
 			}
-			catch (const std::exception& err)
+			catch (const char * err)
 			{
-				cerr << err.what() << endl;
+				cerr << err << endl;
 			}
 
 			break;
@@ -224,9 +224,9 @@ void Run(Fmibook & fmi)
 				fmi.changeNickname(actor, newNickname);
 				cout << actor << " changes his/her nickname to " << newNickname << endl;
 			}
-			catch (const std::exception& err)
+			catch (const char * err)
 			{
-				cerr << err.what() << endl;
+				cerr << err << endl;
 			}
 			break;
 		}
@@ -237,9 +237,9 @@ void Run(Fmibook & fmi)
 				fmi.info();
 				cout << actor << " views info" << endl;
 			}
-			catch (const std::exception& err)
+			catch (const char * err)
 			{
-				cerr << err.what() << endl;
+				cerr << err << endl;
 			}
 
 			break;
@@ -265,5 +265,6 @@ int main()
 {
 	Fmibook fmi("Admin", 22);
 	Run(fmi);
+
 	return 0;
 }

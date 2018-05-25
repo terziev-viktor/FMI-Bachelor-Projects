@@ -1,10 +1,5 @@
 #include "Fmibook.h"
-#include "Moderator.h"
-#include "Post.h"
 
-#include <stdexcept>
-#include <iostream>
-#include <fstream>
 using std::cout;
 using std::endl;
 using fmi::Fmibook;
@@ -13,14 +8,28 @@ using fmi::posts::Post;
 
 fmi::Fmibook::Fmibook(const char * adminNickname, unsigned short adminAge)
 {
+	this->users = new List<User>();
+	this->posts = new List<Post>();
 	this->nextId = 1;
 	Admin * theAdmin = Admin::getInstancePointer(adminNickname, adminAge, this->nextId);
-	this->users.add(theAdmin);
+	this->users->add(theAdmin);
+	++this->nextId;
+}
+
+fmi::Fmibook::Fmibook(const char * adminNickname, unsigned short adminAge, fmi::tools::DynamicArray<User> * users, fmi::tools::DynamicArray<Post> * posts)
+{
+	this->users = users;
+	this->posts = posts;
+	this->nextId = 1;
+	Admin * theAdmin = Admin::getInstancePointer(adminNickname, adminAge, this->nextId);
+	this->users->add(theAdmin);
 	++this->nextId;
 }
 
 Fmibook::~Fmibook()
 {
+	delete users;
+	delete posts;
 }
 
 void fmi::Fmibook::addModerator(const char * actor, const char * nickname, unsigned short age)
@@ -28,7 +37,7 @@ void fmi::Fmibook::addModerator(const char * actor, const char * nickname, unsig
 	User * p = this->getUserByNickname(actor);
 	if (p == nullptr)
 	{
-		throw std::invalid_argument("User does not exist");
+		throw "User does not exist";
 	}
 	Admin * theAdmin = dynamic_cast<Admin*>(p);
 	if (theAdmin)
@@ -38,7 +47,7 @@ void fmi::Fmibook::addModerator(const char * actor, const char * nickname, unsig
 	}
 	else
 	{
-		throw std::invalid_argument("Only the admin can add a new moderator");
+		throw "Only the admin can add a new moderator";
 	}
 }
 
@@ -47,7 +56,7 @@ void fmi::Fmibook::addUser(const char * actor, const char * nickname, unsigned s
 	User * p = this->getUserByNickname(actor);
 	if (p == nullptr)
 	{
-		throw std::invalid_argument("User does not exist");
+		throw "User does not exist";
 	}
 	Admin * theAdmin = dynamic_cast<Admin*>(p);
 	if (theAdmin)
@@ -57,7 +66,7 @@ void fmi::Fmibook::addUser(const char * actor, const char * nickname, unsigned s
 	}
 	else
 	{
-		throw std::invalid_argument("Only the admin can add a new user");
+		throw "Only the admin can add a new user";
 	}
 }
 
@@ -67,11 +76,11 @@ void fmi::Fmibook::removeUser(const char * actor, const char * nickname)
 	User * userToRemovePointer = this->getUserByNickname(nickname);
 	if (userToRemovePointer == nullptr)
 	{
-		throw std::invalid_argument("User does not exist");
+		throw "User does not exist";
 	}
 	if (adminPointer == nullptr)
 	{
-		throw std::invalid_argument("User does not exist");
+		throw "User does not exist";
 	}
 	Admin * theAdmin = dynamic_cast<Admin*>(adminPointer);
 	if (theAdmin)
@@ -80,7 +89,7 @@ void fmi::Fmibook::removeUser(const char * actor, const char * nickname)
 	}
 	else
 	{
-		throw std::invalid_argument("Only the admin can remove a user");
+		throw "Only the admin can remove a user";
 	}
 }
 
@@ -90,11 +99,11 @@ void fmi::Fmibook::block(const char * actor, const char * nickname)
 	User * userToBlock = getUserByNickname(nickname);
 	if (userToBlock == nullptr)
 	{
-		throw std::invalid_argument("User does not exist");
+		throw "User does not exist";
 	}
 	if (p == nullptr)
 	{
-		throw std::invalid_argument("User does not exist");
+		throw "User does not exist";
 	}
 	Admin * adm = dynamic_cast<Admin*>(p);
 	Moderator * mod = dynamic_cast<Moderator*>(p);
@@ -110,7 +119,7 @@ void fmi::Fmibook::block(const char * actor, const char * nickname)
 	}
 	else
 	{
-		throw std::invalid_argument("Only the admin and moderators are allowed to block users");
+		throw "Only the admin and moderators are allowed to block users";
 	}
 }
 
@@ -120,11 +129,11 @@ void fmi::Fmibook::unblock(const char * actor, const char * who)
 	User * userToUnblock = getUserByNickname(who);
 	if (userToUnblock == nullptr)
 	{
-		throw std::invalid_argument("User does not exist");
+		throw "User does not exist";
 	}
 	if (p == nullptr)
 	{
-		throw std::invalid_argument("User does not exist");
+		throw "User does not exist";
 	}
 	Admin * adm = dynamic_cast<Admin*>(p);
 	Moderator * modr = dynamic_cast<Moderator*>(p);
@@ -138,7 +147,7 @@ void fmi::Fmibook::unblock(const char * actor, const char * who)
 	}
 	else
 	{
-		throw std::invalid_argument("Only the admin and moderators are allowed to unblock users");
+		throw "Only the admin and moderators are allowed to unblock users";
 	}
 }
 
@@ -147,7 +156,7 @@ void fmi::Fmibook::postImage(const char * actor, const char * content)
 	User * u = this->getUserByNickname(actor);
 	if (u == nullptr)
 	{
-		throw std::invalid_argument("User does not exist");
+		throw "User does not exist";
 	}
 
 	ImgPost * post = new ImgPost(content, nextId, u->getId());
@@ -160,7 +169,7 @@ void fmi::Fmibook::postLink(const char * actor, const char * url, const char * d
 	User * u = this->getUserByNickname(actor);
 	if (u == nullptr)
 	{
-		throw std::invalid_argument("User does not exist");
+		throw "User does not exist";
 	}
 
 	LinkPost * post = new LinkPost(url, desctiption, nextId, u->getId());
@@ -173,7 +182,7 @@ void fmi::Fmibook::postText(const char * actor, const char * content)
 	User * u = this->getUserByNickname(actor);
 	if (u == nullptr)
 	{
-		throw std::invalid_argument("User does not exist");
+		throw "User does not exist";
 	}
 
 	TextPost * post = new TextPost(content, nextId, u->getId());
@@ -186,7 +195,7 @@ void fmi::Fmibook::removePost(const char * actor, unsigned int id)
 	User * p = this->getUserByNickname(actor);
 	if (p == nullptr)
 	{
-		throw std::invalid_argument("User does not exist");
+		throw "User does not exist";
 	}
 	p->removePost(id, this->posts);
 }
@@ -194,9 +203,9 @@ void fmi::Fmibook::removePost(const char * actor, unsigned int id)
 void fmi::Fmibook::viewPost(const char * actor, unsigned int id)
 {
 	Post * p;
-	for (unsigned int i = 0; i < this->posts.count(); i++)
+	for (unsigned int i = 0; i < this->posts->count(); i++)
 	{
-		p = posts.getAt(i);
+		p = posts->getAt(i);
 		if (p->getId() == id)
 		{
 			const char * content = p->asHTML();
@@ -238,7 +247,7 @@ void fmi::Fmibook::viewAllPosts(const char * actorNickname, const char * ofwhoNi
 		throw "User does not exists";
 	}
 
-	unsigned int count = this->posts.count();
+	unsigned int count = this->posts->count();
 	cout << actor->getNickname() << " views " << ofWho->getNickname() << "'s posts:" << endl;
 	std::ofstream out;
 	unsigned int filenameSize = strlen(actor->getNickname()) + strlen(ofWho->getNickname()) + 21;
@@ -259,7 +268,7 @@ void fmi::Fmibook::viewAllPosts(const char * actorNickname, const char * ofwhoNi
 	}
 	for (unsigned int i = 0; i < count; i++)
 	{
-		Post * p = this->posts.getAt(i);
+		Post * p = this->posts->getAt(i);
 		if (p->getOwnerId() == ofWho->getId())
 		{
 			const char * html = p->asHTML();
@@ -283,12 +292,12 @@ void fmi::Fmibook::info()
 	// When Admin is created the counter increases so we substract 1
 	cout << "Number of Moderators: " << Moderator::getObjectsCount() - 1 << endl;
 	// Basic users are all users that are not moderators
-	cout << "Number of Basic Users: " << this->users.count() - Moderator::getObjectsCount() << endl;
+	cout << "Number of Basic Users: " << this->users->count() - Moderator::getObjectsCount() << endl;
 	unsigned int countOfBlockedUsers = 0;
 	cout << "Blocked Users:" << endl;
-	for (unsigned int i = 0; i < this->users.count(); i++)
+	for (unsigned int i = 0; i < this->users->count(); i++)
 	{
-		User * u = this->users.getAt(i);
+		User * u = this->users->getAt(i);
 		if (u->isBlocked())
 		{
 			countOfBlockedUsers++;
@@ -300,11 +309,11 @@ void fmi::Fmibook::info()
 
 User * fmi::Fmibook::getUserByNickname(const char * nickname)
 {
-	unsigned int count = this->users.count();
+	unsigned int count = this->users->count();
 	User * p;
 	for (unsigned int i = 0; i < count; i++)
 	{
-		p = this->users.getAt(i);
+		p = this->users->getAt(i);
 		if (strcmp(p->getNickname(), nickname) == 0)
 		{
 			return p;

@@ -15,7 +15,7 @@ namespace fmi
 
 			static unsigned int getObjectsCount();
 
-			void removePost(unsigned int id, List<Post> & posts);
+			void removePost(unsigned int id, DynamicArray<Post> * posts);
 			
 		private:
 			static unsigned int OBJ_COUNT;

@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 using fmi::users::User;
+using fmi::tools::DynamicArray;
 
 User::User(const char * nickname, unsigned short age, unsigned int id)
 {
@@ -28,13 +29,13 @@ User & fmi::users::User::operator=(const User & other)
 	return *this;
 }
 
-void fmi::users::User::addPost(fmi::posts::Post * post, fmi::tools::List<fmi::posts::Post> & posts)
+void fmi::users::User::addPost(fmi::posts::Post * post, DynamicArray<Post> * posts)
 {
 	if (this->blocked)
 	{
 		throw "Blocked users can't post";
 	}
-	posts.add(post);
+	posts->add(post);
 }
 
 const bool fmi::users::User::isBlocked() const
@@ -71,12 +72,12 @@ const unsigned int fmi::users::User::getId() const
 	return this->id;
 }
 
-void fmi::users::User::changeNickname(const char * newNickName, List<User> & users)
+void User::changeNickname(const char * newNickName, DynamicArray<User> * users)
 {
-	unsigned int count = users.count();
+	unsigned int count = users->count();
 	for (unsigned int i = 0; i < count; i++)
 	{
-		User * u = users.getAt(i);
+		User * u = users->getAt(i);
 		if (strcmp(u->getNickname(), newNickName) == 0)
 		{
 			throw "This nickname is already used";

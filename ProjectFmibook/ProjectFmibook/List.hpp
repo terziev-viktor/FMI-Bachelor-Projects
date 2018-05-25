@@ -1,6 +1,9 @@
 #pragma once
 #include <stdexcept>
 #include <iostream>
+
+#include "DynamicArray.hpp"
+
 using std::cout;
 using std::endl;
 namespace fmi
@@ -9,7 +12,7 @@ namespace fmi
 	{
 		// Class representing a simple dynamically allocated array of elements
 		template<class T>
-		class List
+		class List : public DynamicArray<T>
 		{
 		public:
 			List();

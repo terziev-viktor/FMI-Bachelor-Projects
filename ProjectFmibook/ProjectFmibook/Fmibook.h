@@ -6,7 +6,10 @@
 #include "LinkPost.h"
 #include "TextPost.h"
 #include "ImgPost.h"
+#include "Moderator.h"
 
+#include <iostream>
+#include <fstream>
 namespace fmi
 {
 	using namespace tools;
@@ -35,11 +38,14 @@ namespace fmi
 
 	// This class only shows how Users and Posts hierarchies work
 	// It controls only method calls. Logic is in Users and Posts classes
-	// This shows that Im using currect design patters for the project
+	// This shows that I'm using currect design patters for the project
+	// For simplicity, all methods throw const char*
 	class Fmibook
 	{
 	public:
 		Fmibook(const char * adminNickname, unsigned short adminAge);
+		// If the user wants to exetent DynamicArray ot List and use their class
+		Fmibook(const char * adminNickname, unsigned short adminAge, DynamicArray<User> * users, DynamicArray<Post> * posts);
 		~Fmibook();
 		// Only the admin can do these---
 		void addModerator(const char * actor, const char * nickname, unsigned short age);
@@ -57,8 +63,8 @@ namespace fmi
 		void changeNickname(const char * actor, const char * newNickname);
 		void info();
 	private:
-		List<User> users;
-		List<Post> posts;
+		DynamicArray<User> * users;
+		DynamicArray<Post> * posts;
 		unsigned int nextId;
 		User * getUserByNickname(const char * nickname);
 	};
