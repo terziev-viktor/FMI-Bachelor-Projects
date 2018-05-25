@@ -11,6 +11,7 @@ namespace fmi
 			~BasicUser();
 			virtual void removePost(unsigned int id, List<Post> & posts);
 			
+			
 			// basic user can change only their nickname and only if the new one is not used by another user
 		};
 	}

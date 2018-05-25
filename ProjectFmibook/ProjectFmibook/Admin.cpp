@@ -10,10 +10,19 @@ Admin * fmi::users::Admin::getInstancePointer(const char * nickname, unsigned sh
 
 void fmi::users::Admin::addUser(User * userToAdd, List<User> & users)
 {
+	unsigned int count = users.count();
+	for (unsigned int i = 0; i < count; i++)
+	{
+		User * u = users.getAt(i);
+		if (strcmp(u->getNickname(), userToAdd->getNickname()) == 0)
+		{
+			throw "Username taken";
+		}
+	}
 	users.add(userToAdd);
 }
 
-void fmi::users::Admin::removeUser(unsigned int id, List<User>& users)
+void fmi::users::Admin::removeUser(unsigned int id, List<User>& users, List<Post> & posts)
 {
 	unsigned int count = users.count();
 	for (unsigned int i = 0; i < count; i++)
@@ -23,9 +32,18 @@ void fmi::users::Admin::removeUser(unsigned int id, List<User>& users)
 		{
 			if (userToRemove == this)
 			{
-				throw "The Admin can not remove himself";
+				throw "The Admin cannot remove himself";
 			}
 			users.removeAt(i);
+			for (unsigned int i = 0; i < posts.count(); i++)
+			{
+				Post * p = posts.getAt(i);
+				if (p->getOwnerId() == id)
+				{
+					posts.removeAt(i);
+					--i; // the next post will be on index = index of removed post
+				}
+			}
 			return;
 		}
 	}

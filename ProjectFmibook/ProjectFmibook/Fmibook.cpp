@@ -30,9 +30,10 @@ void fmi::Fmibook::addModerator(const char * actor, const char * nickname, unsig
 	{
 		throw std::invalid_argument("User does not exist");
 	}
-	if (dynamic_cast<Admin*>(p))
+	Admin * theAdmin = dynamic_cast<Admin*>(p);
+	if (theAdmin)
 	{
-		this->users.add(new Moderator(nickname, age, nextId));
+		theAdmin->addUser(new Moderator(nickname, age, nextId), this->users);
 		++nextId;
 	}
 	else
@@ -41,7 +42,7 @@ void fmi::Fmibook::addModerator(const char * actor, const char * nickname, unsig
 	}
 }
 
-void fmi::Fmibook::addUser(const char * actor, const const char * nickname, unsigned short age)
+void fmi::Fmibook::addUser(const char * actor, const char * nickname, unsigned short age)
 {
 	User * p = this->getUserByNickname(actor);
 	if (p == nullptr)
@@ -75,11 +76,11 @@ void fmi::Fmibook::removeUser(const char * actor, const char * nickname)
 	Admin * theAdmin = dynamic_cast<Admin*>(adminPointer);
 	if (theAdmin)
 	{
-		theAdmin->removeUser(userToRemovePointer->getId(), this->users);
+		theAdmin->removeUser(userToRemovePointer->getId(), this->users, this->posts);
 	}
 	else
 	{
-		throw std::invalid_argument("Only the admin can add a new user");
+		throw std::invalid_argument("Only the admin can remove a user");
 	}
 }
 
@@ -199,15 +200,16 @@ void fmi::Fmibook::viewPost(const char * actor, unsigned int id)
 		if (p->getId() == id)
 		{
 			const char * content = p->asHTML();
+
 			char idstr[33];
 			_itoa_s(id, idstr, 10);
-
-			char * outFileName = new char[strlen(actor) + strlen(idstr) + 13]; // nickname + viewpost + id + .html
+			int outFileNameSize = strlen(actor) + strlen(idstr) + 14;
+			char * outFileName = new char[outFileNameSize]; // nickname + viewpost + id + .html + \0
 			outFileName[0] = '\0';
-			strcat_s(outFileName, sizeof(outFileName), actor);
-			strcat_s(outFileName, sizeof(outFileName), "viewPost");
-			strcat_s(outFileName, sizeof(outFileName), idstr);
-			strcat_s(outFileName, sizeof(outFileName), ".html");
+			strcat_s(outFileName, outFileNameSize, actor);
+			strcat_s(outFileName, outFileNameSize, "viewPost");
+			strcat_s(outFileName, outFileNameSize, idstr);
+			strcat_s(outFileName, outFileNameSize, ".html");
 
 			std::ofstream out;
 			out.open(outFileName);
@@ -218,6 +220,7 @@ void fmi::Fmibook::viewPost(const char * actor, unsigned int id)
 			}
 			out << content << endl;
 			cout << content << endl;
+			delete[] content;
 			out.close();
 			delete[] outFileName;
 			return;
@@ -238,13 +241,15 @@ void fmi::Fmibook::viewAllPosts(const char * actorNickname, const char * ofwhoNi
 	unsigned int count = this->posts.count();
 	cout << actor->getNickname() << " views " << ofWho->getNickname() << "'s posts:" << endl;
 	std::ofstream out;
-	unsigned int filenameSize = strlen(actor->getNickname()) + strlen(ofWho->getNickname()) + 20;
+	unsigned int filenameSize = strlen(actor->getNickname()) + strlen(ofWho->getNickname()) + 21;
 	char * fileName = new char[filenameSize];
+	// building file name string
 	fileName[0] = '\0';
-	strcat_s(fileName, sizeof(fileName), actor->getNickname());
-	strcat_s(fileName, sizeof(fileName), "viewsAllPostsOf");
-	strcat_s(fileName, sizeof(fileName), ofWho->getNickname());
-	strcat_s(fileName, sizeof(fileName), ".html");
+	strcat_s(fileName, filenameSize, actor->getNickname());
+	strcat_s(fileName, filenameSize, "viewsAllPostsOf");
+	strcat_s(fileName, filenameSize, ofWho->getNickname());
+	strcat_s(fileName, filenameSize, ".html");
+	// -------------------------
 	out.open(fileName);
 	if (!out)
 	{
@@ -258,12 +263,19 @@ void fmi::Fmibook::viewAllPosts(const char * actorNickname, const char * ofwhoNi
 		if (p->getOwnerId() == ofWho->getId())
 		{
 			const char * html = p->asHTML();
-
+			cout << html << endl;
 			out << html << endl;
+			delete[] html;
 		}
 	}
 	out.close();
 	delete[] fileName;
+}
+
+void fmi::Fmibook::changeNickname(const char * actor, const char * newNickname)
+{
+	User * u = getUserByNickname(actor);
+	u->changeNickname(newNickname, users);
 }
 
 void fmi::Fmibook::info()

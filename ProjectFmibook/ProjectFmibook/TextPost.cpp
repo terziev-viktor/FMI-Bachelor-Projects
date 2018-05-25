@@ -14,11 +14,12 @@ TextPost::~TextPost()
 
 const char * TextPost::asHTML() const
 {
-	char result[MAX_HTML_SIZE]; // max content + space for html tag <p>...</p>
+	int size = strlen(this->getContent()) + 8;
+	char * result = new char[size]; // max content + space for html tag <p>...</p> + \0
 	result[0] = '\0';
-	strcat_s(result, MAX_HTML_SIZE, "<p>");
-	strcat_s(result, MAX_HTML_SIZE, this->getContent());
-	strcat_s(result, MAX_HTML_SIZE, "</p>");
+	strcat_s(result, size, "<p>");
+	strcat_s(result, size, this->getContent());
+	strcat_s(result, size, "</p>");
 
 	return result;
 }

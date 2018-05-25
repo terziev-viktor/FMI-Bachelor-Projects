@@ -48,7 +48,7 @@ void fmi::users::User::setNickname(const char * newnickname)
 	{
 		throw std::invalid_argument("Invalid new nickname for User");
 	}
-	strcpy_s(this->nickname, sizeof(this->nickname), newnickname);
+	strcpy_s(this->nickname, MAX_NICKNAME_LENGTH, newnickname);
 }
 
 const char * fmi::users::User::getNickname() const
@@ -70,3 +70,18 @@ const unsigned int fmi::users::User::getId() const
 {
 	return this->id;
 }
+
+void fmi::users::User::changeNickname(const char * newNickName, List<User> & users)
+{
+	unsigned int count = users.count();
+	for (unsigned int i = 0; i < count; i++)
+	{
+		User * u = users.getAt(i);
+		if (strcmp(u->getNickname(), newNickName) == 0)
+		{
+			throw "This nickname is already used";
+		}
+	}
+	this->setNickname(newNickName);
+}
+

@@ -287,11 +287,6 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 
-# Visual Studio Project files
-*.sln
-*.vcxproj.filters
-*.vcxproj
-*.vcxproj.user
 # Visual Studio Code
 .vscode
 

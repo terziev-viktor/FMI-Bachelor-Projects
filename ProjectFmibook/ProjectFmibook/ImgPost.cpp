@@ -16,11 +16,12 @@ const char * ImgPost::asHTML() const
 {
 	// result should look something like this:
 	// <img src='content'>
-	char result[MAX_HTML_SIZE]; // max content + space for html tag <img .. >
+	int size = strlen(this->getContent()) + 13;
+	char * result = new char[size]; // max content + space for html tag <img .. > + \0
 	result[0] = '\0';
-	strcat_s(result, MAX_HTML_SIZE, "<img src='");
-	strcat_s(result, MAX_HTML_SIZE, this->getContent());
-	strcat_s(result, MAX_HTML_SIZE, "'>");
+	strcat_s(result, size, "<img src='");
+	strcat_s(result, size, this->getContent());
+	strcat_s(result, size, "'>");
 
 	return result;
 }

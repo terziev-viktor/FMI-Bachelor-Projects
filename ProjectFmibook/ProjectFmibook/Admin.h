@@ -14,7 +14,7 @@ namespace fmi
 
 			// Only the admin can add new users to the list, or remove users from the list
 			void addUser(User * userToAdd, List<User> & users);
-			void removeUser(unsigned int id, List<User> & users);
+			void removeUser(unsigned int id, List<User> & users, List<Post> & posts);
 		private:
 			Admin();
 			Admin(const char * nickname, unsigned short age, unsigned int id);

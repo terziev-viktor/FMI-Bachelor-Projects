@@ -23,7 +23,7 @@ void fmi::users::BasicUser::removePost(unsigned int id, List<Post>& posts)
 		Post * p = posts.getAt(i);
 		if (p->getId() == id)
 		{
-			if (p->getOwnerId() == id)
+			if (p->getOwnerId() == this->id)
 			{
 				posts.removeAt(i);
 				return;
@@ -36,19 +36,3 @@ void fmi::users::BasicUser::removePost(unsigned int id, List<Post>& posts)
 	}
 	throw std::invalid_argument("This user has no post with this id");
 }
-
-//void fmi::users::BasicUser::removePost(unsigned int id)
-//{
-//	unsigned int count = this->posts.count();
-//	Post * p;
-//	for (int i = 0; i < count; i++)
-//	{
-//		p = this->posts.getAt(i);
-//		if (p->getId() == id)
-//		{
-//			this->posts.removeAt(i);
-//			return;
-//		}
-//	}
-//	throw "This user has no such post";
-//}

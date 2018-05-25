@@ -17,7 +17,6 @@ namespace fmi
 			virtual ~User();
 			static const unsigned int MAX_NICKNAME_LENGTH = 100;
 
-			void setNickname(const char *);
 			void setAge(unsigned short age);
 
 			const bool isBlocked() const;
@@ -29,13 +28,16 @@ namespace fmi
 			// the Admin and moderators should be able to edit .blocked of other objects
 			friend class Moderator;
 			friend class Admin;
-			
+
+			void changeNickname(const char * newNickName, List<User> & users);
 			void addPost(Post * post, List<Post> & posts);
 			virtual void removePost(unsigned int id, List<Post> & posts) = 0;
 
 		protected:
 			bool blocked;
 			unsigned int id;
+
+			void setNickname(const char *);
 		private:
 
 			char nickname[MAX_NICKNAME_LENGTH];

@@ -54,7 +54,7 @@ namespace fmi
 		template<class T>
 		inline void List<T>::add(T * item)
 		{
-			if (item == nullptr)
+			if (!item)
 			{
 				throw std::invalid_argument("Invalid item");
 			}

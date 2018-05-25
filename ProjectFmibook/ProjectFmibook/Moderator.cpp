@@ -18,7 +18,7 @@ Moderator::~Moderator()
 
 void fmi::users::Moderator::block(User * user)
 {
-
+	user->blocked = true;
 }
 
 void fmi::users::Moderator::unblock(User * user)

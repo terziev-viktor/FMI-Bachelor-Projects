@@ -11,7 +11,7 @@ namespace fmi
 
 			static const unsigned int MAX_CONTENT = 500;
 			
-			virtual const char * asHTML() const = 0;
+			virtual const char * asHTML() const = 0; // virtual method asHTML will be overwritten by derived classes
 
 			const char * getContent() const;
 			const unsigned int getId() const;

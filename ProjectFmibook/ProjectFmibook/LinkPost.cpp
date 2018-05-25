@@ -15,13 +15,14 @@ LinkPost::~LinkPost()
 
 const char * fmi::posts::LinkPost::asHTML() const
 {
-	char result[MAX_HTML_SIZE];
+	unsigned int size = strlen(this->getContent()) + strlen(this->getDescription()) + 16;
+	char * result = new char[size];
 	result[0] = '\0';
-	strcat_s(result, MAX_HTML_SIZE, "<a href='");
-	strcat_s(result, MAX_HTML_SIZE, this->getContent());
-	strcat_s(result, MAX_HTML_SIZE, "'>");
-	strcat_s(result, MAX_HTML_SIZE, this->description);
-	strcat_s(result, MAX_HTML_SIZE, "</a>");
+	strcat_s(result, size, "<a href='");
+	strcat_s(result, size, this->getContent());
+	strcat_s(result, size, "'>");
+	strcat_s(result, size, this->description);
+	strcat_s(result, size, "</a>");
 
 	return result;
 }
