@@ -44,7 +44,7 @@ namespace fmi
 	{
 	public:
 		Fmibook(const char * adminNickname, unsigned short adminAge);
-		// If the user wants to exetent DynamicArray ot List and use their class
+		// If the user wants to exetend DynamicArray<t> or List<T> and use their class
 		Fmibook(const char * adminNickname, unsigned short adminAge, DynamicArray<User> * users, DynamicArray<Post> * posts);
 		~Fmibook();
 		// Only the admin can do these---

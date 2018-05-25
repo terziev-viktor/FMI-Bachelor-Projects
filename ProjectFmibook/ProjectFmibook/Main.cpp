@@ -263,7 +263,36 @@ void Run(Fmibook & fmi)
 
 int main()
 {
-	Fmibook fmi("Admin", 22);
+	// uncomment for an example
+	/*try
+	{
+		Fmibook fmi("Admin", 22);
+		fmi.addModerator("Admin", "mod1", 22);
+		fmi.addModerator("Admin", "mod2", 22);
+		fmi.addModerator("Admin", "mod3", 22);
+		fmi.addModerator("Admin", "mod4", 22);
+		fmi.addModerator("Admin", "mod5", 22);
+		fmi.addUser("Admin", "user1", 22);
+		fmi.addUser("Admin", "user2", 22);
+		fmi.addUser("Admin", "user3", 22);
+		fmi.addUser("Admin", "user4", 22);
+		fmi.postLink("user1", "some/url/img.png", "This is my dick");
+		fmi.postLink("user1", "some/url/img.png", "This is my dick again");
+		fmi.postLink("user2", "some/url/img.png", "This is my black dick");
+		fmi.postLink("user3", "some/url/img.png", "This is my little dick");
+		fmi.viewAllPosts("Admin", "user1");
+		fmi.viewPost("user1", 13);
+		fmi.block("mod1", "mod2");
+		fmi.unblock("mod2", "mod2");
+		fmi.postText("mod2", "some text");
+		fmi.changeNickname("mod2", "mod1111");
+		fmi.info();
+	}
+	catch (const char * what)
+	{
+		cout << what << endl;
+	}*/
+	Fmibook fmi("admin", 42);
 	Run(fmi);
 
 	return 0;

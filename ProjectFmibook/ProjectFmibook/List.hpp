@@ -24,12 +24,11 @@ namespace fmi
 			// I dont return a const item because Fmibook should be able to edit items;
 			T * getAt(unsigned int index) const;
 			void removeAt(unsigned int index);
-
-			bool isEmplty();
+			const bool isEmplty() const;
 			// sets the index to 0. Does not delete objects
 			void clear();
 			// returns count of elements in the array
-			unsigned int count();
+			const unsigned int count() const;
 		private:
 			static const unsigned int INIT_SIZE = 15;
 			unsigned int size;
@@ -96,7 +95,7 @@ namespace fmi
 		}
 
 		template<class T>
-		inline bool List<T>::isEmplty()
+		inline const bool List<T>::isEmplty() const
 		{
 			return this->index == 0;
 		}
@@ -112,7 +111,7 @@ namespace fmi
 		}
 
 		template<class T>
-		inline unsigned int List<T>::count()
+		inline const unsigned int List<T>::count() const
 		{
 			return this->index;
 		}
