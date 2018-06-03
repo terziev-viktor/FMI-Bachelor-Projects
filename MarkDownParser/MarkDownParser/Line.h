@@ -6,19 +6,19 @@ public:
 	Line(const char*);
 	~Line();
 
-	bool getIsLoaded() const;
+	const bool getIsLoaded() const;
 	void load(const char*);
-	char getChar(int at) const;
+	const char getChar(int at) const;
 	// size of buffer
-	int getSize() const;
+	const int getSize() const;
 	// number of symbols on the line
-	int getLength() const;
+	const int getLength() const;
 	bool setNewContent(char * newbuffer, int size);
 	int getNextWordIndex();
 	void resetWordIndex();
-	bool isHeading();
+	const bool isHeading() const;
 	// Prints the buffer on the std output. This method is for debug purpuses.
-	void print();
+	void print() const;
 private:
 	char * buffer;
 	int size;

@@ -23,7 +23,7 @@ Line::~Line()
 	}
 }
 
-bool Line::getIsLoaded() const
+const bool Line::getIsLoaded() const
 {
 	return this->isLoaded;
 }
@@ -44,17 +44,17 @@ void Line::load(const char * content)
 	}
 }
 
-char Line::getChar(int at) const
+const char Line::getChar(int at) const
 {
 	return this->buffer[at];
 }
 
-int Line::getSize() const
+const int Line::getSize() const
 {
 	return this->size;
 }
 
-int Line::getLength() const
+const int Line::getLength() const
 {
 	return this->size - 1;
 }
@@ -107,7 +107,7 @@ bool Line::isHeading()
 	return false;
 }
 
-void Line::print()
+void Line::print() const
 {
 	for (int i = 0; i < this->size; i++)
 	{
