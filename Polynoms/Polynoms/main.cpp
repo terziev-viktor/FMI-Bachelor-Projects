@@ -1,18 +1,32 @@
-#include "Vector.hpp"
-using namespace polynoms::tools;
-
 #include <iostream>
+#include "Vector.hpp"
+
 using std::cout;
 using std::endl;
 
 int main()
 {
 	Vector<int> a;
-	a.add(1);
-	a.add(2);
-	a.add(3);
-	a.add(a.getAt(0) + a.getAt(1));
-	a.print();
-	
+	a.push_back(2);
+	a.push_back(3);
+
+	Vector<int> b;
+	b.push_back(2);
+	b.push_back(3);
+	b.push_back(4);
+	b.push_back(4);
+	b.push_back(100);
+	b.push_back(4);
+	b.push_back(4);
+	b.push_back(4);
+	b.push_back(4);
+	b.push_back(4);
+	b.push_back(4);
+	b.push_back(4);
+	b.push_back(4);
+
+	int x = a(2);
+	cout << x << endl;
+
 	return 0;
 }
