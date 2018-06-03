@@ -19,7 +19,7 @@ The Singleton design pattern is interesting:
 class Admin : public Moderator
 {
 public:
-  static Admin * getInstancePointer(/.. some args ../);
+  static Admin & getInstance();
   // ...
 private:
   Admin();
