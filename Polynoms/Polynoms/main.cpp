@@ -27,6 +27,9 @@ int main()
 
 	int x = a(2);
 	cout << x << endl;
-
+	bool asBool = (bool)a;
+	int asInt = (int)a;
+	cout << "as bool: " << asBool << endl;
+	cout << "as int: " << asInt << endl;
 	return 0;
 }

@@ -42,7 +42,8 @@ public:
 	T operator()(const T & x);
 	// Integral from a to b
 	T operator()(const T & a, const T & b);
-
+	operator bool();
+	operator const T&();
 	Vector<T> & operator++();
 	const Vector<T> operator++(T);
 
@@ -230,6 +231,18 @@ inline T Vector<T>::operator()(const T & a, const T & b)
 {
 	throw "not implemented";
 	return T();
+}
+
+template<class T>
+inline Vector<T>::operator bool()
+{
+	return this->count() != 0;
+}
+
+template<class T>
+inline Vector<T>::operator const T&()
+{
+	return this->front();
 }
 
 template<class T>
