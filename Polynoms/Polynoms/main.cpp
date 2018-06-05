@@ -6,30 +6,24 @@ using std::endl;
 
 int main()
 {
-	Vector<int> a;
+	Vector<double> a;
 	a.push_back(2);
 	a.push_back(3);
+	a.push_back(3);
+	a.push_back(3);
+	a.push_back(3);
+	a.push_back(3);
+	a.push_back(3);
+	a++;
+	IIterator<double> * iterator = a.createIterator();
 
-	Vector<int> b;
-	b.push_back(2);
-	b.push_back(3);
-	b.push_back(4);
-	b.push_back(4);
-	b.push_back(100);
-	b.push_back(4);
-	b.push_back(4);
-	b.push_back(4);
-	b.push_back(4);
-	b.push_back(4);
-	b.push_back(4);
-	b.push_back(4);
-	b.push_back(4);
+	while (!iterator->isDone())
+	{
+		double current = iterator->current();
+		cout << current << " ";
+		iterator->next();
+	}
+	delete iterator;
 
-	int x = a(2);
-	cout << x << endl;
-	bool asBool = (bool)a;
-	int asInt = (int)a;
-	cout << "as bool: " << asBool << endl;
-	cout << "as int: " << asInt << endl;
 	return 0;
 }

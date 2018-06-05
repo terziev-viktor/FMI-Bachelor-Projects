@@ -1,16 +1,19 @@
 #pragma once
 #include <iostream>
 #include <math.h>
+#include "IContainer.h"
+
 // Vector of elements of type T
 // T should have operator= implemented
 template<class T>
-class Vector
+class Vector : public IContainer<T>
 {
 public:
 	Vector();
 	Vector(const unsigned int capacity);
 	Vector(const Vector<T> & other);
 	~Vector();
+	IIterator<T> * createIterator();
 
 	static const unsigned int INIT_SIZE = 15;
 	void print(std::ostream & os) const;
@@ -20,7 +23,7 @@ public:
 	const T & front() const;
 	const T & back() const;
 	const T & operator[] (unsigned int index) const;
-	T operator[] (unsigned int index);
+	T & operator[] (unsigned int index);
 
 	const T & max() const;
 	bool contains(const T & item, unsigned int & out) const;
@@ -34,7 +37,6 @@ public:
 	const unsigned int count() const;
 
 	Vector<T> & operator=(const Vector<T> & other);
-	bool operator==(const Vector<T> & other);
 	Vector<T> & operator+=(const Vector<T> & other);
 	Vector<T> & operator*=(const Vector<T> & other);
 	Vector<T> & operator*=(const T & scalar);
@@ -43,15 +45,57 @@ public:
 	// Integral from a to b
 	T operator()(const T & a, const T & b);
 	operator bool();
+	bool operator!();
 	operator const T&();
+	operator const unsigned int();
+
 	Vector<T> & operator++();
-	const Vector<T> operator++(T);
+	const Vector<T> operator++(int);
+
+	Vector<T> & operator--();
+	const Vector<T> operator--(int);
 
 private:
 	unsigned int index;
 	unsigned int size;
 	T * buffer;
 	void expand();
+
+	template<class T>
+	class VectorIterator : public IIterator<T>
+	{
+	public:
+		VectorIterator(T * data, unsigned int size)
+		{
+			this->size = size;
+			this->data = data;
+		}
+		const T & first() const
+		{
+			return data[0];
+		}
+		void next()
+		{
+			position++;
+		}
+		const T & current() const
+		{
+			return data[position];
+		}
+		bool hasNext() const
+		{
+			return position < size;
+		}
+		bool isDone() const
+		{
+			return position == size;
+		}
+	private:
+		T * data;
+		unsigned int size;
+		unsigned int position;
+	};
+
 };
 
 template<class T>
@@ -138,15 +182,15 @@ std::ostream & operator<<(std::ostream & os, const Vector<T> & vector)
 }
 
 template<class T>
-inline bool Vector<T>::operator==(const Vector<T> & other)
+bool operator==(const Vector<T> & l, const Vector<T> & r)
 {
-	if (this->count() != other.count())
+	if (l.count() != r.count())
 	{
 		return false;
 	}
-	for (unsigned int i = 0; i < other.count(); i++)
+	for (unsigned int i = 0; i < l.count(); i++)
 	{
-		if (this->buffer[i] != other.buffer[i])
+		if (l[i] != r[i])
 		{
 			return false;
 		}
@@ -219,9 +263,13 @@ template<class T>
 inline T Vector<T>::operator()(const T & x)
 {
 	T result = this->buffer[0];
+	T current;
 	for (unsigned int i = 1; i < this->index; i++)
 	{
-		result += this->buffer[i] * pow(x, i);
+		current = this->buffer[i];
+		T xPowerValue = pow(x, i);
+		current *= xPowerValue;
+		result += current;
 	}
 	return result;
 }
@@ -229,8 +277,12 @@ inline T Vector<T>::operator()(const T & x)
 template<class T>
 inline T Vector<T>::operator()(const T & a, const T & b)
 {
-	throw "not implemented";
-	return T();
+	Vector<T> F = (*this);
+	F++;
+	T left = F(a);
+	T right = F(b);
+
+	return left - right;
 }
 
 template<class T>
@@ -240,40 +292,89 @@ inline Vector<T>::operator bool()
 }
 
 template<class T>
+inline bool Vector<T>::operator!()
+{
+	return this->count() == 0;
+}
+
+template<class T>
 inline Vector<T>::operator const T&()
 {
 	return this->front();
 }
 
 template<class T>
-inline Vector<T>& Vector<T>::operator++()
+inline Vector<T>::operator const unsigned int()
 {
-	// todo
+	return this->index - 1;
 }
 
 template<class T>
-inline const Vector<T> Vector<T>::operator++(T)
+inline Vector<T>& Vector<T>::operator++()
 {
-	return Vector<T>();
+	this->push_back(0);
+	for (unsigned int i = this->index - 1; i > 0; i--)
+	{
+		T coef = this->buffer[i - 1];
+		coef /= (T)i;
+		this->buffer[i] = coef;
+	}
+	this->buffer[0] = (T)0;
+
+	return *this;
+}
+
+template<class T>
+inline const Vector<T> Vector<T>::operator++(int)
+{
+	Vector<T> old = *this;
+	this->push_back(0);
+	for (unsigned int i = this->index - 1; i > 0; i--)
+	{
+		T coef = this->buffer[i - 1];
+		coef /= (T)i;
+		this->buffer[i] = coef;
+	}
+	this->buffer[0] = (T)0;
+	return old;
+}
+
+template<class T>
+inline Vector<T>& Vector<T>::operator--()
+{
+	for (unsigned int i = 0; i < this->index - 1; i++)
+	{
+		T coef = this->buffer[i + 1];
+		coef *= (T)(i + 1);
+		this->buffer[i] = coef;
+	}
+	--this->index;
+	return *this;
+}
+
+template<class T>
+inline const Vector<T> Vector<T>::operator--(int)
+{
+	Vector<T> old = *this;
+	for (unsigned int i = 0; i < this->index - 1; i++)
+	{
+		T coef = this->buffer[i + 1];
+		coef *= (T)(i + 1);
+		this->buffer[i] = coef;
+	}
+	--this->index;
+	return old;
 }
 
 template<class T>
 inline const T & Vector<T>::operator[](unsigned int index) const
 {
-	if (index >= this->index)
-	{
-		return 0;
-	}
 	return this->buffer[index];
 }
 
 template<class T>
-inline T Vector<T>::operator[](unsigned int index)
+inline T & Vector<T>::operator[](unsigned int index)
 {
-	if (index >= this->index)
-	{
-		return 0;
-	}
 	return this->buffer[index];
 }
 
@@ -356,6 +457,12 @@ inline Vector<T>::~Vector()
 }
 
 template<class T>
+inline IIterator<T> * Vector<T>::createIterator()
+{
+	return new VectorIterator<T>(this->buffer, this->index);
+}
+
+template<class T>
 inline void Vector<T>::push_back(const T & item)
 {
 	if (this->index == this->size)
@@ -430,7 +537,7 @@ inline Vector<T>& Vector<T>::operator=(const Vector<T>& other)
 	{
 		delete[] this->buffer;
 	}
-	this->buffer = new T[other->size];
+	this->buffer = new T[other.size];
 	for (unsigned int i = 0; i < other.index; i++)
 	{
 		this->buffer[i] = other.buffer[i];
