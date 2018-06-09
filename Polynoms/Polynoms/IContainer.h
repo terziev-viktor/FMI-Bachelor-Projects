@@ -6,5 +6,4 @@ class IContainer
 {
 public:
 	virtual ~IContainer() = default;
-	virtual IIterator<T> * createIterator() = 0;
 };

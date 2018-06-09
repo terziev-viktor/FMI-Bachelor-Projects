@@ -3,8 +3,7 @@
 #include <math.h>
 #include "IContainer.h"
 
-// Vector of elements of type T
-// T should have operator= implemented
+// Vector of elements of type <T>. The vector represents a polynom over a field of elements of type <T>
 template<class T>
 class Vector : public IContainer<T>
 {
@@ -13,40 +12,81 @@ public:
 	Vector(const unsigned int capacity);
 	Vector(const Vector<T> & other);
 	~Vector();
-	IIterator<T> * createIterator();
+
+	Vector<T>::VectorIterator<T> & createIterator();
 
 	static const unsigned int INIT_SIZE = 15;
-	void print(std::ostream & os) const;
-	void setAt(unsigned int at, const T & value);
 
+	// Prints a string representation of the vector on stream <os>
+	void print(std::ostream & os) const;
+
+	// Returns element at positon <at>
+	const T & getAt(unsigned int at) const;
+
+	// Adds <item> after the last not zero element of the vector
 	void push_back(const T & item);
+
+	// Returns the first element of the vector
 	const T & front() const;
+
+	// Returns the last not zero element of the vector
 	const T & back() const;
+
+	// Gives read-only access to vector's elements by index
 	const T & operator[] (unsigned int index) const;
+
+	// Gives read-write access to vector's elements by index.
+	// Note that setting the senior coefficient to 0 will 'break' the vector as the real degree will be decreased by 1 so I would not implement this operator.
 	T & operator[] (unsigned int index);
 
+	// Returns the biggest element in the vector
 	const T & max() const;
+
+	// Returns whether <item> exists in the vector
+	// <out> will contain <item> index if <item> exists in the vector
 	bool contains(const T & item, unsigned int & out) const;
+
+	// Returns whether <item> exists in the vector
 	bool contains(const T & item) const;
 
+	// Removes element at position <index>
+	// Throws std::out_of_range exception if <index> is invalid
 	void removeAt(unsigned int index);
-	const bool isEmplty() const;
+
+	// Returns whether no items have been added to the vector
+	const bool isEmpty() const;
+
+	// Removes all elements of the vector
 	void clear();
+
 	void clearEndingZeros();
 
+	// Returns number of added elements to the vector
 	const unsigned int count() const;
 
 	Vector<T> & operator=(const Vector<T> & other);
-	Vector<T> & operator+=(const Vector<T> & other);
 	Vector<T> & operator*=(const Vector<T> & other);
+	Vector<T> & operator/=(const Vector<T> & right);
+
+	Vector<T> & operator-=(const Vector<T> other);
+	Vector<T> & operator+=(const Vector<T> other);
+
+	// Scalar multiplication
 	Vector<T> & operator*=(const T & scalar);
+	// Scalar division
 	Vector<T> & operator/=(const T & scalar);
+
+	// Returns value of polynom in point <x> represented by the vector
 	T operator()(const T & x);
-	// Integral from a to b
+
+	// Returns Integral from <a> to <b> of the polynom represented by the vector
 	T operator()(const T & a, const T & b);
+
+	// Operator for casting to bool. Returns whether the vector is empty
 	operator bool();
+
 	bool operator!();
-	operator const T&();
+	operator unsigned int();
 	operator const unsigned int();
 
 	Vector<T> & operator++();
@@ -54,13 +94,8 @@ public:
 
 	Vector<T> & operator--();
 	const Vector<T> operator--(int);
-
-private:
-	unsigned int index;
-	unsigned int size;
-	T * buffer;
-	void expand();
-
+	// Vector<T>'s iterator.
+	// Gives access to elements in the vector without exposing its internal structure
 	template<class T>
 	class VectorIterator : public IIterator<T>
 	{
@@ -68,7 +103,14 @@ private:
 		VectorIterator(T * data, unsigned int size)
 		{
 			this->size = size;
+			this->position = 0;
 			this->data = data;
+		}
+		VectorIterator(const VectorIterator<T> & other)
+		{
+			this->position = other.position;
+			this->size = other.size;
+			this->data = other.data;
 		}
 		const T & first() const
 		{
@@ -76,10 +118,18 @@ private:
 		}
 		void next()
 		{
-			position++;
+			++position;
 		}
 		const T & current() const
 		{
+			if (this->position < 0)
+			{
+				return this->data[0];
+			}
+			if (this->position >= this->size)
+			{
+				return this->data[this->size - 1];
+			}
 			return data[position];
 		}
 		bool hasNext() const
@@ -88,15 +138,123 @@ private:
 		}
 		bool isDone() const
 		{
-			return position == size;
+			return position >= size;
 		}
+
+		VectorIterator<T> & operator++(int)
+		{
+			this->position++;
+			return *this;
+		}
+		VectorIterator<T> & operator++()
+		{
+			VectorIterator<T> temp = *this;
+			++this->position;
+			return temp;
+		}
+
+		VectorIterator<T> & operator--(int)
+		{
+			--this->position;
+			return *this;
+		}
+		VectorIterator<T> & operator--()
+		{
+			VectorIterator<T> temp = *this;
+			--this->position;
+			return temp;
+		}
+
 	private:
 		T * data;
 		unsigned int size;
 		unsigned int position;
 	};
+private:
+	unsigned int index;
+	unsigned int size; // size of buffer
+	T * buffer;
+	// Sets <value> at position <at>
+	// Throws out_of_range exception if argument <at> is invalid
+	// This function expands the capacity of the vector as much as needed so use with caution. This the main reason why it is private
+	void setAt(unsigned int at, const T & value);
 
+	// Doubles buffer's size
+	void expand();
+	
+	// Expands buffer's size to <to>
+	void expand(unsigned int to);
+
+	void setToZero();
 };
+
+template<class T>
+inline void Vector<T>::push_back(const T & item)
+{
+	if (this->index == this->size)
+	{
+		this->expand();
+	}
+	if (item == 0)
+	{
+		return;
+	}
+	this->buffer[this->index] = item;
+	++this->index;
+}
+
+template<class T>
+inline const unsigned int Vector<T>::count() const
+{
+	return this->index;
+}
+
+template<class T>
+inline void Vector<T>::setAt(unsigned int at, const T & value)
+{
+	if (at < 0)
+	{
+		throw std::out_of_range("Index <at> is out of range.");
+	}
+	if (at >= this->index)
+	{
+		this->expand(at + 1);
+	}
+	this->buffer[at] = value;
+	this->index = at + 1;
+}
+
+template<class T>
+inline const T & Vector<T>::operator[](unsigned int index) const
+{
+	// no idea how should I implement this.
+	// If I assume the the vector is endless then I should return zero ?
+	if (index < 0)
+	{
+		throw std::out_of_range("Index out of range.");
+	}
+	if (index >= this->index)
+	{
+		T t = 0;
+		return t;
+	}
+	return this->buffer[index];
+}
+
+template<class T>
+inline T & Vector<T>::operator[](unsigned int index)
+{
+	if (index < 0)
+	{
+		throw std::out_of_range("Index out of range.");
+	}
+	if (index >= this->index)
+	{
+		T t = 0;
+		return t;
+	}
+	return this->buffer[index];
+}
 
 template<class T>
 inline void Vector<T>::print(std::ostream & os) const
@@ -110,32 +268,119 @@ inline void Vector<T>::print(std::ostream & os) const
 }
 
 template<class T>
-inline void Vector<T>::setAt(unsigned int at, const T & value)
+inline const T & Vector<T>::getAt(unsigned int at) const
 {
-	if (at >= 0 && at < this->index)
+	if (at < 0 || at >= this->index)
 	{
-		this->buffer[at] = value;
+		throw std::out_of_range("Index out of range.");
 	}
+	return this->buffer[at];
+}
+
+template<class T>
+inline const T & Vector<T>::front() const
+{
+	return this->buffer[0];
+}
+
+template<class T>
+inline const T & Vector<T>::back() const
+{
+	return this->buffer[this->index - 1];
+}
+
+template<class T>
+inline const bool Vector<T>::isEmpty() const
+{
+	return this->index == 0;
+}
+
+template<class T>
+inline void Vector<T>::clear()
+{
+	this->index = 0;
+}
+
+template<class T>
+inline const T & Vector<T>::max() const
+{
+	T max = this->buffer[0];
+	for (unsigned int i = 1; i < this->index; i++)
+	{
+		if (max < this->buffer[i])
+		{
+			max = this->buffer[i];
+		}
+	}
+	return max;
+}
+
+template<class T>
+inline bool Vector<T>::contains(const T & item) const
+{
+	for (unsigned int i = 0; i < this->index; i++)
+	{
+		if (item == buffer[i])
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+template<class T>
+inline bool Vector<T>::contains(const T & item, unsigned int & out) const
+{
+	for (unsigned int i = 0; i < this->index; i++)
+	{
+		if (item == buffer[i])
+		{
+			out = i;
+			return true;
+		}
+	}
+	return false;
+}
+
+template<class T>
+inline void Vector<T>::removeAt(unsigned int index)
+{
+	if (index < 0)
+	{
+		throw std::out_of_range("Invalid index.");
+	}
+	if (index == this->index - 1)
+	{
+		--this->index;
+	}
+	else if (index >= 0 && index < this->index - 1)
+	{
+		for (unsigned int i = index; i < this->index - 1; i++)
+		{
+			this->buffer[i] = this->buffer[i + 1];
+		}
+		--this->index;
+	}
+}
+
+template<class T>
+inline Vector<T> operator*(const Vector<T> & l, const T & scalar)
+{
+	Vector<T> result(l.count());
+	for (unsigned int i = 0; i < l.count(); i++)
+	{
+		T tmp = l[i];
+		tmp *= scalar;
+		result.push_back(tmp);
+	}
+	return result;
 }
 
 template<class T>
 Vector<T> operator*(const Vector<T> & l, const Vector<T> & r)
 {
-	const unsigned int deg = (l.count() - 1) * (r.count() - 1);
-	Vector<T> result(deg);
-	for (unsigned int n = 0; n <= deg; ++n)
-	{
-		T sum = l[0] * r[n];
-		for (unsigned int i = 1; i <= n; i++)
-		{
-			T left = l[i];
-			T rig = r[n - i];
-			T diff = left * rig;
-			sum += diff;
-		}
-		result.push_back(sum);
-	}
-	result.clearEndingZeros();
+	Vector<T> result = l;
+	result *= r;
 	return result;
 }
 
@@ -147,7 +392,18 @@ Vector<T> operator+(const Vector<T> & l, const Vector<T> & r)
 	T sum;
 	for (unsigned int i = 0; i < size; i++)
 	{
-		sum = l[i] + r[i];
+		if (i < l.count() && i < r.count())
+		{
+			sum = l[i] + r[i];
+		}
+		else if (i < r.count())
+		{
+			sum = r[i];
+		}
+		else
+		{
+			sum = l[i];
+		}
 		result.push_back(sum);
 	}
 	result.clearEndingZeros();
@@ -157,29 +413,34 @@ Vector<T> operator+(const Vector<T> & l, const Vector<T> & r)
 template<class T>
 Vector<T> operator-(const Vector<T> & l, const Vector<T> & r)
 {
+	if (&l == &r)
+	{
+		Vector<T> result(1);
+		return result;
+	}
 	const unsigned int size = l.count() > r.count() ? l.count() : r.count();
 	Vector<T> result(size);
-	T sum;
+	T diff;
 	for (unsigned int i = 0; i < size; i++)
 	{
-		sum = l[i] - r[i];
-		result.push_back(sum);
+		if (i < l.count() && i < r.count())
+		{
+			diff = l[i] - r[i];
+		}
+		else if (i < r.count())
+		{
+			diff = r[i] * -1;
+		}
+		else
+		{
+			diff = l[i];
+		}
+		result.push_back(diff);
 	}
 	result.clearEndingZeros();
 	return result;
 }
 
-template<class T>
-std::ostream & operator<<(std::ostream & os, const Vector<T> & vector)
-{
-	os << "(";
-	for (unsigned int i = 0; i < vector.count() - 1; i++)
-	{
-		os << vector[i] << ", ";
-	}
-	os << vector[vector.count() - 1] << ")";
-	return os;
-}
 
 template<class T>
 bool operator==(const Vector<T> & l, const Vector<T> & r)
@@ -199,21 +460,6 @@ bool operator==(const Vector<T> & l, const Vector<T> & r)
 }
 
 template<class T>
-inline Vector<T>& Vector<T>::operator+=(const Vector<T>& other)
-{
-	Vector<T> temp = *this;
-	const unsigned int count = this->count() > other.count() ? this->count() : other.count();
-	this->clear();
-
-	for (unsigned int i = 0; i < count; i++)
-	{
-		this->push_back(temp[i] + other[i]);
-	}
-	this->clearEndingZeros();
-	return *this;
-}
-
-template<class T>
 inline Vector<T>& Vector<T>::operator*=(const Vector<T>& other)
 {
 	Vector<T> temp = *this;
@@ -223,13 +469,72 @@ inline Vector<T>& Vector<T>::operator*=(const Vector<T>& other)
 	for (unsigned int n = 0; n <= deg; ++n)
 	{
 		T sum = temp[0] * other[n];
-		for (unsigned int i = 1; i <= n; i++)
+		for (unsigned int i = 1; i <= n; ++i)
 		{
 			sum = sum + (temp[i] * other[n - i]);
 		}
 		this->push_back(sum);
 	}
 	this->clearEndingZeros();
+	return *this;
+}
+
+template<class T>
+inline Vector<T>& Vector<T>::operator/=(const Vector<T>& right)
+{
+	if (this->count() == 0 || right.count() == 0)
+	{
+		throw "Logical exception";
+	}
+	unsigned int leftDeg = this->count() - 1;
+	unsigned int rightDeg = right.count() - 1;
+	if (leftDeg < rightDeg)
+	{
+		// the result is the zero vector
+		this->clear();
+		this->push_back(0);
+		return *this;
+	}
+	unsigned int resultdeg = leftDeg - rightDeg;
+	unsigned int i = resultdeg;
+	Vector<T> result(resultdeg + 1);
+
+	while (leftDeg >= rightDeg)
+	{
+		const T leftSenior = this->back();
+		const T rightSenior = right.back();
+		const T resultSenior = leftSenior / rightSenior;
+		Vector<T> tmp;
+		tmp.setAt(i, resultSenior);
+		cout << tmp << endl;
+		result.setAt(i, resultSenior);
+		--i;
+		Vector<T> multi = right * tmp;
+		cout << multi << endl;
+		*this -= multi;
+		if (this->count() == 0)
+		{
+			leftDeg = 0;
+		}
+		else {
+			leftDeg = this->count() - 1;
+		}
+	}
+	*this = result;
+	return *this;
+}
+
+template<class T>
+inline Vector<T>& Vector<T>::operator-=(const Vector<T> other)
+{
+	*this = *this - other;
+	return *this;
+}
+
+template<class T>
+inline Vector<T>& Vector<T>::operator+=(const Vector<T> other)
+{
+	*this = *this + other;
 	return *this;
 }
 
@@ -298,9 +603,9 @@ inline bool Vector<T>::operator!()
 }
 
 template<class T>
-inline Vector<T>::operator const T&()
+inline Vector<T>::operator unsigned int()
 {
-	return this->front();
+	return this->index - 1;
 }
 
 template<class T>
@@ -367,72 +672,28 @@ inline const Vector<T> Vector<T>::operator--(int)
 }
 
 template<class T>
-inline const T & Vector<T>::operator[](unsigned int index) const
-{
-	return this->buffer[index];
-}
-
-template<class T>
-inline T & Vector<T>::operator[](unsigned int index)
-{
-	return this->buffer[index];
-}
-
-template<class T>
-inline const T & Vector<T>::max() const
-{
-	T max = this->buffer[0];
-	for (unsigned int i = 1; i < this->index; i++)
-	{
-		if (max < this->buffer[i])
-		{
-			max = this->buffer[i];
-		}
-	}
-	return max;
-}
-
-template<class T>
-inline bool Vector<T>::contains(const T & item, unsigned int & out) const
-{
-	for (unsigned int i = 0; i < this->index; i++)
-	{
-		if (item == buffer[i])
-		{
-			out = i;
-			return true;
-		}
-	}
-	return false;
-}
-
-template<class T>
-inline bool Vector<T>::contains(const T & item) const
-{
-	for (unsigned int i = 0; i < this->index; i++)
-	{
-		if (item == buffer[i])
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-template<class T>
 inline Vector<T>::Vector()
 {
 	this->size = Vector::INIT_SIZE;
 	this->index = 0;
 	this->buffer = new T[this->size];
+	this->setToZero();
 }
 
 template<class T>
 inline Vector<T>::Vector(const unsigned int capacity)
 {
-	this->size = capacity;
+	if (capacity <= 0)
+	{
+		this->size = 1;
+	}
+	else
+	{
+		this->size = capacity;
+	}
 	this->index = 0;
 	this->buffer = new T[this->size];
+	this->setToZero();
 }
 
 template<class T>
@@ -457,62 +718,9 @@ inline Vector<T>::~Vector()
 }
 
 template<class T>
-inline IIterator<T> * Vector<T>::createIterator()
+inline Vector<T>::VectorIterator<T>& Vector<T>::createIterator()
 {
-	return new VectorIterator<T>(this->buffer, this->index);
-}
-
-template<class T>
-inline void Vector<T>::push_back(const T & item)
-{
-	if (this->index == this->size)
-	{
-		this->expand();
-	}
-	this->buffer[this->index] = item;
-	++this->index;
-}
-
-template<class T>
-inline const T & Vector<T>::front() const
-{
-	// todo: check for valid argument
-	return this->buffer[0];
-}
-
-template<class T>
-inline const T & Vector<T>::back() const
-{
-	return this->buffer[this->index - 1];
-}
-
-template<class T>
-inline void Vector<T>::removeAt(unsigned int index)
-{
-	if (index == this->index - 1)
-	{
-		--this->index;
-	}
-	else if (index >= 0 && index < this->index - 1)
-	{
-		for (unsigned int i = index; i < this->index - 1; i++)
-		{
-			this->buffer[i] = this->buffer[i + 1];
-		}
-		--this->index;
-	}
-}
-
-template<class T>
-inline const bool Vector<T>::isEmplty() const
-{
-	return this->index == 0;
-}
-
-template<class T>
-inline void Vector<T>::clear()
-{
-	this->index = 0;
+	return Vector<T>::VectorIterator<T>(this->data, this->index);
 }
 
 template<class T>
@@ -525,26 +733,22 @@ inline void Vector<T>::clearEndingZeros()
 }
 
 template<class T>
-inline const unsigned int Vector<T>::count() const
-{
-	return this->index;
-}
-
-template<class T>
 inline Vector<T>& Vector<T>::operator=(const Vector<T>& other)
 {
-	if (this->buffer)
+	if (this != &other)
 	{
-		delete[] this->buffer;
+		if (this->buffer)
+		{
+			delete[] this->buffer;
+		}
+		this->buffer = new T[other.index];
+		for (unsigned int i = 0; i < other.index; i++)
+		{
+			this->buffer[i] = other.buffer[i];
+		}
+		this->size = other.index;
+		this->index = other.index;
 	}
-	this->buffer = new T[other.size];
-	for (unsigned int i = 0; i < other.index; i++)
-	{
-		this->buffer[i] = other.buffer[i];
-	}
-	this->index = other.index;
-	this->size = other.size;
-
 	return *this;
 }
 
@@ -557,6 +761,77 @@ inline void Vector<T>::expand()
 	{
 		biggerBuffer[i] = this->buffer[i];
 	}
+	for (unsigned int i = this->index; i < this->size; i++)
+	{
+		biggerBuffer[i] = 0;
+	}
 	delete[] this->buffer;
 	this->buffer = biggerBuffer;
+}
+
+template<class T>
+inline void Vector<T>::expand(unsigned int to)
+{
+	this->size = to;
+	T * biggerBuffer = new T[this->size];
+	for (unsigned int i = 0; i < this->index; i++)
+	{
+		biggerBuffer[i] = this->buffer[i];
+	}
+	for (unsigned int i = this->index; i < this->size; i++)
+	{
+		biggerBuffer[i] = 0;
+	}
+	delete[] this->buffer;
+	this->buffer = biggerBuffer;
+}
+
+template<class T>
+inline void Vector<T>::setToZero()
+{
+	for (unsigned i = 0; i < this->size; i++)
+	{
+		this->buffer[i] = 0;
+	}
+}
+
+template<class T>
+bool operator<(const Vector<T> & left, const Vector<T> & right)
+{
+	return left.count() < right.count();
+}
+
+template<class T>
+bool operator>(const Vector<T> & left, const Vector<T> & right)
+{
+	return left.count() > right.count();
+}
+
+template<class T>
+bool operator<=(const Vector<T> & left, const Vector<T> & right)
+{
+	return left.count() <= right.count();
+}
+
+template<class T>
+bool operator>=(const Vector<T> & left, const Vector<T> & right)
+{
+	return left.count() >= right.count();
+}
+
+template<class T>
+std::ostream & operator<<(std::ostream & os, const Vector<T> & vector)
+{
+	os << '(';
+	if (vector.count() == 0)
+	{
+		os << ')';
+		return os;
+	}
+	for (unsigned int i = 0; i < vector.count() - 1; i++)
+	{
+		os << vector[i] << ", ";
+	}
+	os << vector[vector.count() - 1] << ")";
+	return os;
 }
