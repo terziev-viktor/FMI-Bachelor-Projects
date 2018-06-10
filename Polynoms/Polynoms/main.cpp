@@ -26,6 +26,8 @@ int main()
 	while (!i.isDone())
 	{
 		cout << *i << endl;
+		bool r = i < 3;
+		cout << "i < 10? " << r << endl;
 		++i;
 	}
 

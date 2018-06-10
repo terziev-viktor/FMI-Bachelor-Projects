@@ -171,6 +171,26 @@ public:
 		{
 			return *this->current;	
 		}
+		bool operator<(int i)
+		{
+			return current < (this->front + i);
+		}
+		bool operator>(int i)
+		{
+			return current > (this->front + i);
+		}
+		bool operator==(int i)
+		{
+			return current == (this->front + i);
+		}
+		bool operator>=(int i)
+		{
+			return current >= (this->front + i);
+		}
+		bool operator<=(int i)
+		{
+			return current <= (this->front + i);
+		}
 	};
 
 	VectorIterator createIterator()
@@ -395,6 +415,22 @@ Vector<T> operator*(const Vector<T> & l, const Vector<T> & r)
 {
 	Vector<T> result = l;
 	result *= r;
+	return result;
+}
+
+template<class T>
+Vector<T> operator/(const Vector<T> & l, const Vector<T> & r)
+{
+	Vector<T> result = l;
+	result /= r;
+	return result;
+}
+
+template<class T>
+Vector<T> operator%(const Vector<T> & l, const Vector<T> & r)
+{
+	Vector<T> result = l;
+	result %= r;
 	return result;
 }
 
