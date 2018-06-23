@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <math.h>
+#include <stdarg.h>
 
 // Vector of elements of type <T>. The vector represents a polynom over a field of elements of type <T>
 
@@ -8,6 +9,7 @@ template<class T> class Vector
 {
 public:
 	Vector();
+	Vector(int capacity, ...);
 	Vector(const unsigned int capacity);
 	Vector(const Vector<T> & other);
 	~Vector();
@@ -795,6 +797,24 @@ inline Vector<T>::Vector()
 	this->index = 0;
 	this->buffer = new T[this->size];
 	this->setToZero();
+}
+
+template<class T>
+inline Vector<T>::Vector(int capacity, ...)
+{
+	this->size = capacity;
+	this->index = 0;
+	this->buffer = new T[this->size];
+	this->setToZero();
+
+	va_list args;
+	va_start(args, capacity);
+	for (int i = 0; i < capacity; i++)
+	{
+		T next = va_arg(args, T);
+		this->push_back(next);
+	}
+	va_end(args);
 }
 
 template<class T>
