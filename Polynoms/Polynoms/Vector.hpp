@@ -805,7 +805,6 @@ inline Vector<T>::Vector(int capacity, ...)
 	this->size = capacity;
 	this->index = 0;
 	this->buffer = new T[this->size];
-	this->setToZero();
 
 	va_list args;
 	va_start(args, capacity);
