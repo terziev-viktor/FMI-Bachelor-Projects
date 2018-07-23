@@ -7,7 +7,6 @@
 #include <Windows.h>
 using namespace std;
 
-// using static global variables only for the demo
 static mutex v_mutex; // mutex used to lock the numbers vector
 static condition_variable cv;
 static vector<int> numbers;
