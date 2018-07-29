@@ -40,6 +40,7 @@ int main()
 	{
 		cout << memory[i] << endl; // printing the result too see if it works or not
 	}
+	
 	free(memory); // deallocating memory block
 	return 0;
 }
