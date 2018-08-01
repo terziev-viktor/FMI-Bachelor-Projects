@@ -305,8 +305,15 @@ inline unsigned int Vector<T>::capacity() const
 template<class T>
 inline void Vector<T>::expand()
 {
-	T * biggerBuffer = new T[this->size * 2];
-	this->size *= 2;
+	if (this->size == 0)
+	{
+		this->size = INIT_SIZE;
+	}
+	else
+	{
+		this->size *= 2;
+	}
+	T * biggerBuffer = new T[this->size];
 	for (size_t i = 0; i < this->index; i++)
 	{
 		biggerBuffer[i] = this->buffer[i];

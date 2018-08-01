@@ -14,7 +14,7 @@ Word::Word(const String & value, const String & type)
 
 const String & Word::get_value() const
 {
-	return this->type;
+	return this->value;
 }
 
 void Word::set_value(const String & new_value)
@@ -27,8 +27,19 @@ String Word::get_type() const
 	return this->type;
 }
 
-int Word::compare(const Word & other)
+int Word::compare(const Word & other) const
 {
 	// todo: default comparrison
 	return 0;
+}
+
+Word * Word::get_copy() const
+{
+	return new Word(*this);
+}
+
+std::ostream & Word::operator<<(std::ostream & os) const
+{
+	os << this->get_value();
+	return os;
 }

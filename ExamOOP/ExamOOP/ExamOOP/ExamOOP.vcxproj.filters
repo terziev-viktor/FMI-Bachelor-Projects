@@ -39,9 +39,6 @@
     <ClCompile Include="Date.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Simple.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Document.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -66,9 +63,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Date.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Simple.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Document.h">

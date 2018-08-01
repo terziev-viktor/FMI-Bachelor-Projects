@@ -1,18 +1,28 @@
 #include "WordsFactory.h"
 
-Word * WordsFactory::Basic_WordFactory::create_word(const String & type, const String & value)
+Word * WordsFactory::Basic_WordFactory::create_word(const String & value) const
 {
-	if (type == "Simple")
+	Word * w = nullptr;
+	try
 	{
-		return new Simple(value);
+		Word * w = new Date(value);
+		return w;
 	}
-	if (type == "Hashtag")
+	catch (const std::exception&)
+	{
+		if (w)
+		{
+			delete w;
+		}
+	}
+	return new Word(value, "Simple");
+}
+
+Word * WordsFactory::Concrete_WordFactory::create_word(const String & value) const
+{
+	if (value[0] == '#')
 	{
 		return new Hashtag(value);
 	}
-	if (type == "Date")
-	{
-		return new Date(value);
-	}
-	return nullptr;
+	return Basic_WordFactory::create_word(value);
 }

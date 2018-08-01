@@ -21,7 +21,7 @@ String::String(const char * value)
 	this->length = std::strlen(value);
 	this->capacity = this->length + 1;
 	this->value = new char[this->capacity];
-	strcpy_s(this->value, sizeof(this->value), value);
+	strcpy_s(this->value, this->capacity, value);
 }
 
 String::String(const String & other)
@@ -29,7 +29,7 @@ String::String(const String & other)
 	this->length = other.get_length();
 	this->capacity = this->length + 1;
 	this->value = new char[this->capacity];
-	strcpy_s(this->value, sizeof(this->value), other.get_as_char_array());
+	strcpy_s(this->value, this->capacity, other.get_as_char_array());
 }
 
 
@@ -89,7 +89,7 @@ String String::substring(unsigned int from, unsigned int to) const
 int String::find_first_of(const String & c, unsigned int start_from) const
 {
 	int len = c.get_length();
-	for (unsigned int i = start_from; i < this->length; ++i)
+	for (unsigned int i = start_from; i < this->get_length(); ++i)
 	{
 		for (int j = 0; j < len; ++j)
 		{
@@ -130,6 +130,28 @@ Vector<String> String::split(const String & delim) const
 		from = to + 1;
 	}
 
+	return result;
+}
+
+Vector<String> String::extract(const String & symbols) const
+{
+	Vector<String> result;
+	int from = 0;
+	int to = 1;
+	while(to < this->get_length())
+	{
+		while (to < this->get_length() && symbols.contains(this->value[to]))
+		{
+			++to;
+		}
+		result.add(this->substring(from, to));
+		while (to < this->get_length() && !symbols.contains(this->value[to]))
+		{
+			++to;
+		}
+		from = to;
+		to = from + 1;
+	}
 	return result;
 }
 
@@ -282,7 +304,7 @@ String & String::operator=(const String & other)
 	this->capacity = other.get_capacity();
 	delete[] this->value;
 	this->value = new char[this->capacity];
-	strcpy_s(this->value, sizeof(this->value), other.get_as_char_array());
+	strcpy_s(this->value, this->capacity, other.get_as_char_array());
 	return *this;
 }
 

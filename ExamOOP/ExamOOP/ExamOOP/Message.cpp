@@ -4,26 +4,59 @@ Message::Message()
 {
 }
 
-Message::Message(const String & value)
+Message::~Message()
 {
-	this->set_message(value);
+	for (size_t i = 0; i < this->words.count(); i++)
+	{
+		Word * w = words[i];
+		delete w;
+	}
+}
+Message::Message(const String & value, const Basic_WordFactory * factory)
+{
+	this->set_message(value, factory);
 }
 
-void Message::set(const String & value)
+Message::Message(const Message & other)
 {
-	this->set_message(value);
+	for (size_t i = 0; i < other.get_words().count(); i++)
+	{
+		this->words.add(other.get_words()[i]->get_copy());
+	}
 }
 
-const Vector<Word>& Message::get_words() const
+void Message::set(const String & value, const Basic_WordFactory * factory)
+{
+	this->set_message(value, factory);
+}
+
+const Vector<Word*>& Message::get_words() const
 {
 	return this->words;
 }
 
-void Message::set_message(const String & value)
+void Message::set_message(const String & value, const Basic_WordFactory * factory)
 {
-	unsigned int len = value.get_length();
-	for (size_t i = 0; i < len; i++)
+	for (size_t i = 0; i < this->words.count(); i++)
 	{
-		// todo
+		Word * w = words[i];
+		delete w;
 	}
+	this->words.clear();
+	Vector<String> str_words = value.extract("1234567890QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm-#");
+	for (size_t i = 0; i < str_words.count(); i++)
+	{
+		Word * word = factory->create_word(str_words[i]);
+		this->words.add(word);
+	}
+}
+
+std::ostream & operator<<(std::ostream & os, const Message & obj)
+{
+	const Vector<Word*> & words = obj.get_words();
+	for (size_t i = 0; i < words.count(); i++)
+	{
+		os << words[i]->get_value() << ' ';
+	}
+	return os;
 }

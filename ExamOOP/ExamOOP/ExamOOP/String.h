@@ -19,6 +19,7 @@ public:
 	int find_first_of(const String & characters, unsigned int start_from = 0) const;
 	bool contains(const char ch) const;
 	Vector<String> split(const String & delims) const;
+	Vector<String> extract(const String & symbols) const;
 	bool ends_with(const String &) const;
 	bool starts_with(const char ch) const;
 
