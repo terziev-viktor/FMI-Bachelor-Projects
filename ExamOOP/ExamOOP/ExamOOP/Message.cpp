@@ -30,6 +30,16 @@ void Message::set(const String & value, const Basic_WordFactory * factory)
 	this->set_message(value, factory);
 }
 
+float Message::compare(const Word & word) const
+{
+	float result = 0.0f;
+	for (size_t i = 0; i < this->get_words().count(); i++)
+	{
+		result += word.compare(*this->get_words()[i]);
+	}
+	return result;
+}
+
 const Vector<Word*>& Message::get_words() const
 {
 	return this->words;
@@ -56,7 +66,7 @@ std::ostream & operator<<(std::ostream & os, const Message & obj)
 	const Vector<Word*> & words = obj.get_words();
 	for (size_t i = 0; i < words.count(); i++)
 	{
-		os << words[i]->get_value() << ' ';
+		os << words[i]->get_value() << " ";
 	}
 	return os;
 }

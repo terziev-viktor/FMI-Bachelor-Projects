@@ -48,6 +48,24 @@ unsigned int String::get_capacity() const
 	return this->capacity;
 }
 
+String String::get_to_lower_case() const
+{
+	String result(this->get_length());
+	for (size_t i = 0; i < this->get_length(); i++)
+	{
+		char c = this->value[i];
+		if (c >= 'A' && c <= 'Z')
+		{
+			result += c + 32;
+		}
+		else
+		{
+			result += c;
+		}
+	}
+	return result;
+}
+
 void String::set_capacity(unsigned int length)
 {
 	if (!value)

@@ -35,7 +35,7 @@ void Document::load(const String & path)
 		{
 			break;
 		}
-		this->messages.add(new Message(buffer, factory));
+		this->messages.add(new Message(buffer, this->get_factory()));
 		buffer[0] = '\0';
 	} while (file);
 }
@@ -63,6 +63,15 @@ Vector<Hashtag> Document::get_hashtags() const
 	return result;
 }
 
+const Basic_WordFactory * Document::get_factory() const
+{
+	if (this->factory)
+	{
+		return this->factory;
+	}
+	throw std::exception("Factory not set");
+}
+
 Document & Document::operator+(const Message & message)
 {
 	this->messages.add(new Message(message));
@@ -78,14 +87,22 @@ Document & Document::operator+=(const Document & other)
 	return *this;
 }
 
-Message & Document::operator[](int i)
+const Message & Document::operator[](const String & str) const
 {
-	return *this->messages[i];
-}
-
-const Message & Document::operator[](int i) const
-{
-	return *this->messages[i];
+	Word * word = this->get_factory()->create_word(str);
+	float max = 0.0f;
+	float cur = 0.0f;
+	size_t index = 0;
+	for (size_t i = 0; i < this->get_messages().count(); i++)
+	{
+		cur = this->get_messages()[i]->compare(*word);
+		if (max < cur)
+		{
+			max = cur;
+			index = i;
+		}
+	}
+	return *this->get_messages()[index];
 }
 
 Vector<Word> Document::filter_words(const String & filter) const
@@ -97,6 +114,11 @@ Vector<Word> Document::filter_words(const String & filter) const
 Document::~Document()
 {
 	delete this->factory;
+	for (size_t i = 0; i < this->messages.count(); i++)
+	{
+		Message * m = this->messages[i];
+		delete m;
+	}
 }
 
 std::ostream & operator<<(std::ostream & os, const Document & obj)

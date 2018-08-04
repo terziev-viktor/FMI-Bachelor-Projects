@@ -13,11 +13,10 @@ public:
 	void load(const String & path);
 	const Vector<Message*> & get_messages() const;
 	Vector<Hashtag> get_hashtags() const;
-	
+	const Basic_WordFactory * get_factory() const;
 	Document & operator+(const Message & message); // adds the message
 	Document & operator+=(const Document & message); // adds the message
-	Message & operator[](int i);
-	const Message & operator[](int i) const;
+	const Message & operator[](const String & word) const;
 	Vector<Word> filter_words(const String & filter) const;
 private:
 	const Basic_WordFactory * factory;

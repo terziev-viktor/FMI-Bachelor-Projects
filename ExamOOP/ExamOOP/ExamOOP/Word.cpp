@@ -27,10 +27,22 @@ String Word::get_type() const
 	return this->type;
 }
 
-int Word::compare(const Word & other) const
+float Word::compare(const Word & other) const
 {
-	// todo: default comparrison
-	return 0;
+	int len_min = this->get_value().get_length() <= other.get_value().get_length() ? this->get_value().get_length() : other.get_value().get_length();
+	int len_max = this->get_value().get_length() >= other.get_value().get_length() ? this->get_value().get_length() : other.get_value().get_length();
+	int same_symbol_count = 0;
+	String str1 = this->get_value().get_to_lower_case();
+	String str2 = other.get_value().get_to_lower_case();
+	for (int i = 0; i < len_min; i++)
+	{
+		if (str1.contains(str2[i]))
+		{
+			++same_symbol_count;
+		}
+	}
+	float persent = ((float)same_symbol_count / len_max) * 100.0;
+	return persent;
 }
 
 Word * Word::get_copy() const

@@ -1,6 +1,9 @@
 #pragma once
 #include "String.h"
 
+// Base class for word object
+// Used as a Simple word
+// Default comparison
 class Word
 {
 public:
@@ -9,7 +12,7 @@ public:
 	const String & get_value() const;
 	void set_value(const String & new_value);
 	String get_type() const;
-	virtual int compare(const Word & other) const;
+	virtual float compare(const Word & other) const;
 	virtual Word * get_copy() const;
 	std::ostream & operator<<(std::ostream & os) const;
 private:

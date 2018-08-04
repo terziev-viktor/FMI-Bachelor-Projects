@@ -13,6 +13,7 @@ public:
 	~String();
 	unsigned int get_length() const;
 	unsigned int get_capacity() const;
+	String get_to_lower_case() const;
 	void set_capacity(unsigned int length);
 	const char * get_as_char_array() const;
 	String substring(unsigned int from, unsigned int to) const;

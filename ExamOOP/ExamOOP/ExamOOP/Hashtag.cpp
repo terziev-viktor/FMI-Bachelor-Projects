@@ -17,8 +17,18 @@ Word * Hashtag::get_copy() const
 	return new Hashtag(*this);
 }
 
-int Hashtag::compare(const Word & other) const
+float Hashtag::compare(const Word & other) const
 {
-	return 0;
+	if (this->get_type() != other.get_type())
+	{
+		return 0.0;
+	}
+	String str1 = this->get_value().get_to_lower_case();
+	String str2 = other.get_value().get_to_lower_case();
+	if (str1 == str2)
+	{
+		return 1.0;
+	}
+	return 0.0;
 }
 
