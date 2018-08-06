@@ -12,6 +12,20 @@ Message::~Message()
 		delete w;
 	}
 }
+Message & Message::operator=(const Message & other)
+{
+	for (size_t i = 0; i < this->words.count(); i++)
+	{
+		delete words[i];
+	}
+	this->words.clear();
+	const Vector<Word*> other_words = other.get_words();
+	for (size_t i = 0; i < other_words.count(); i++)
+	{
+		this->words.add(other_words[i]->get_copy());
+	}
+	return *this;
+}
 Message::Message(const String & value, const Basic_WordFactory * factory)
 {
 	this->set_message(value, factory);

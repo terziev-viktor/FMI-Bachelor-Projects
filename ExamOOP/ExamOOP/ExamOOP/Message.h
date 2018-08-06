@@ -11,6 +11,7 @@ public:
 	Message(const String & value, const Basic_WordFactory * factory);
 	Message(const Message & other);
 	~Message();
+	Message & operator=(const Message & other);
 	void set(const String & value, const Basic_WordFactory * factory);
 	float compare(const Word & word) const;
 	const Vector<Word*> & get_words() const;

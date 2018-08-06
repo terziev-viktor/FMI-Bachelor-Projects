@@ -11,11 +11,9 @@ int main()
 	doc.load("test.txt");
 	cout << "-- test.txt" << endl;
 	std::cout << doc << std::endl;
-	Vector<Hashtag> hashtags = doc.get_hashtags();
-	cout << "-- Hashtags" << endl;
-	for (size_t i = 0; i < hashtags.count(); ++i)
-	{
-		cout << hashtags[i].get_value() << " " << endl;
-	}
+	auto & msg = doc["fmi"]; // closest to fmi
+	cout << "Compared to fmi" << endl;
+	cout << msg << endl;
+	
 	return 0;
 }

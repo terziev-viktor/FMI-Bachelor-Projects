@@ -16,7 +16,7 @@ public:
 	bool operator==(const Vector<T> & other) const;
 	Vector<T> & operator+=(const Vector<T> & other);
 	Vector<T> & operator-=(unsigned int count);
-
+	void swap(size_t a, size_t b);
 	int index_of(const T & item) const;
 	void remove_at(unsigned int index);
 	bool is_empty() const;
@@ -245,6 +245,14 @@ inline Vector<T>& Vector<T>::operator-=(unsigned int count)
 	{
 		this->index -= count;
 	}
+}
+
+template<class T>
+inline void Vector<T>::swap(size_t a, size_t b)
+{
+	T tmp = this->buffer[a];
+	this->buffer[a] = this->buffer[b];
+	this->buffer[b] = tmp;
 }
 
 template<class T>

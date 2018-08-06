@@ -3,28 +3,37 @@
 
 
 Date::Date()
-	:Word("", "Date")
+	:Word("11-11-1111", "Date")
 {
 }
 
 Date::Date(const String & value)
 	:Word(value, "Date")
 {
-	if (value.get_length() != 10)
+	if (!Date::check_format(value))
 	{
 		throw std::exception("Not a date");
 	}
+}
+
+bool Date::check_format(const String & value)
+{
+	if (value.get_length() != 10)
+	{
+		return false;
+	}
 	if (value[2] != '-' || value[5] != '-')
 	{
-		throw std::exception("Not a date");
+		return false;
 	}
 	for (size_t i = 0; i < value.get_length(); i++)
 	{
 		if (!((value[i] >= 0 && value[i] <= '9') || value[i] == '-'))
 		{
-			throw std::exception("Not a date");
+			return false;
 		}
 	}
+	return true;
 }
 
 Word * Date::get_copy() const

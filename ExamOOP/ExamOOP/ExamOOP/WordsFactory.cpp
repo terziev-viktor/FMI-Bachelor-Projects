@@ -2,18 +2,9 @@
 
 Word * WordsFactory::Basic_WordFactory::create_word(const String & value) const
 {
-	Word * w = nullptr;
-	try
+	if (Date::check_format(value))
 	{
-		Word * w = new Date(value);
-		return w;
-	}
-	catch (const std::exception&)
-	{
-		if (w)
-		{
-			delete w;
-		}
+		return new Date(value);
 	}
 	return new Word(value, "Simple");
 }

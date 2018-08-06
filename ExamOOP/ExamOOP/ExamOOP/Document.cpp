@@ -9,14 +9,6 @@ Document::Document(const Basic_WordFactory * concrete_factory)
 	this->factory = concrete_factory;
 }
 
-Document::Document(const Document & other)
-{
-	for (size_t i = 0; i < other.messages.count(); i++)
-	{
-		this->messages.add(new Message(*other.messages[i]));
-	}
-}
-
 void Document::load(const String & path)
 {
 	ifstream file;
@@ -35,12 +27,12 @@ void Document::load(const String & path)
 		{
 			break;
 		}
-		this->messages.add(new Message(buffer, this->get_factory()));
+		this->messages.add(Message(buffer, this->get_factory()));
 		buffer[0] = '\0';
 	} while (file);
 }
 
-const Vector<Message*> & Document::get_messages() const
+const Vector<Message> & Document::get_messages() const
 {
 	return this->messages;
 }
@@ -48,10 +40,10 @@ const Vector<Message*> & Document::get_messages() const
 Vector<Hashtag> Document::get_hashtags() const
 {
 	Vector<Hashtag> result;
-	const Vector<Message*> & this_msgs = this->get_messages();
+	const Vector<Message> & this_msgs = this->get_messages();
 	for (size_t i = 0; i < this_msgs.count(); ++i)
 	{
-		const Vector<Word*> & wrds = this_msgs[i]->get_words();
+		const Vector<Word*> & wrds = this_msgs[i].get_words();
 		for (size_t j = 0; j < wrds.count(); ++j)
 		{
 			if (wrds[j]->get_type() == "Hashtag")
@@ -74,7 +66,7 @@ const Basic_WordFactory * Document::get_factory() const
 
 Document & Document::operator+(const Message & message)
 {
-	this->messages.add(new Message(message));
+	this->messages.add(Message(message));
 	return *this;
 }
 
@@ -82,7 +74,7 @@ Document & Document::operator+=(const Document & other)
 {
 	for (size_t i = 0; i < other.messages.count(); i++)
 	{
-		this->messages.add(new Message(*other.messages[i]));
+		this->messages.add(Message(other.messages[i]));
 	}
 	return *this;
 }
@@ -95,38 +87,52 @@ const Message & Document::operator[](const String & str) const
 	size_t index = 0;
 	for (size_t i = 0; i < this->get_messages().count(); i++)
 	{
-		cur = this->get_messages()[i]->compare(*word);
+		cur = this->get_messages()[i].compare(*word);
 		if (max < cur)
 		{
 			max = cur;
 			index = i;
 		}
 	}
-	return *this->get_messages()[index];
+	return this->get_messages()[index];
 }
 
-Vector<Word> Document::filter_words(const String & filter) const
+Vector<Message> Document::filter_messages(const String & filter) const
 {
-	// todo
-	return Vector<Word>();
-}
-
-Document::~Document()
-{
-	delete this->factory;
-	for (size_t i = 0; i < this->messages.count(); i++)
+	Vector<Message> result;
+	const Vector<Message> & this_messages = this->get_messages();
+	Vector<Cmp_Index> comparison_results;
+	Word * word = this->get_factory()->create_word(filter);
+	for (size_t i = 0; i < this_messages.count(); i++)
 	{
-		Message * m = this->messages[i];
-		delete m;
+		Cmp_Index cmp;
+		cmp.comparison = this_messages[i].compare(*word);
+		cmp.index = i;
 	}
+	for (size_t i = 0; i < comparison_results.count(); i++)
+	{
+		for (size_t j = 0; j < comparison_results.count(); j++)
+		{
+			if (comparison_results[i].comparison < comparison_results[j].comparison)
+			{
+				comparison_results.swap(i, j);
+			}
+		}
+	}
+	for (size_t i = 0; i < comparison_results.count(); i++)
+	{
+		result.add(this_messages[comparison_results[i].index]);
+	}
+	delete word;
+	return result;
 }
 
 std::ostream & operator<<(std::ostream & os, const Document & obj)
 {
-	const Vector<Message*> & msgs = obj.get_messages();
+	const Vector<Message> & msgs = obj.get_messages();
 	for (size_t i = 0; i < msgs.count(); i++)
 	{
-		os << *msgs[i] << '\n';
+		os << msgs[i] << '\n';
 	}
 	return os;
 }
