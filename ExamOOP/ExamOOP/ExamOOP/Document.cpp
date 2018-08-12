@@ -3,7 +3,7 @@
 #include <stdexcept>
 using std::ifstream;
 using std::ofstream;
-
+#include <iostream>
 Document::Document(const Basic_WordFactory * concrete_factory)
 {
 	this->factory = concrete_factory;
@@ -103,23 +103,15 @@ Vector<Message> Document::filter_messages(const String & filter) const
 	const Vector<Message> & this_messages = this->get_messages();
 	Vector<Cmp_Index> comparison_results;
 	Word * word = this->get_factory()->create_word(filter);
-	for (size_t i = 0; i < this_messages.count(); i++)
+	for (size_t i = 0; i < this_messages.count(); ++i)
 	{
 		Cmp_Index cmp;
 		cmp.comparison = this_messages[i].compare(*word);
 		cmp.index = i;
+		comparison_results.add(cmp);
 	}
-	for (size_t i = 0; i < comparison_results.count(); i++)
-	{
-		for (size_t j = 0; j < comparison_results.count(); j++)
-		{
-			if (comparison_results[i].comparison < comparison_results[j].comparison)
-			{
-				comparison_results.swap(i, j);
-			}
-		}
-	}
-	for (size_t i = 0; i < comparison_results.count(); i++)
+	comparison_results.bubble_sort([](const Cmp_Index& a, const Cmp_Index& b) -> bool { return a.comparison > b.comparison; });
+	for (size_t i = 0; i < comparison_results.count(); ++i)
 	{
 		result.add(this_messages[comparison_results[i].index]);
 	}

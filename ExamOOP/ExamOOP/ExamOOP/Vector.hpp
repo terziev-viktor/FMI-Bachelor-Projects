@@ -1,6 +1,6 @@
 #pragma once
 #include <stdexcept>
-
+#include <functional>
 template<class T>
 class Vector
 {
@@ -20,6 +20,9 @@ public:
 	int index_of(const T & item) const;
 	void remove_at(unsigned int index);
 	bool is_empty() const;
+
+	void bubble_sort(std::function<bool(const T& a, const T&b)>compare);
+
 	// deletes all items
 	void clear();
 	// returns count of elements in the array
@@ -287,6 +290,28 @@ template<class T>
 inline bool Vector<T>::is_empty() const
 {
 	return this->index == 0;
+}
+
+template<class T>
+inline void Vector<T>::bubble_sort(std::function<bool(const T&a, const T&b)> compare)
+{
+	int max = 0;
+	bool swapped = false;
+	for (size_t i = 0; i < this->count(); ++i)
+	{
+		for (size_t j = 0; j < this->count() - i - 1; ++j)
+		{
+			if (compare(this->buffer[j], this->buffer[j + 1]))
+			{
+				this->swap(j, j + 1);
+				swapped = true;
+			}
+		}
+		if (!swapped)
+		{
+			break;
+		}
+	}
 }
 
 template<class T>

@@ -1,6 +1,7 @@
 #include <iostream>
 #include "WordsFactory.h"
 #include "Document.h"
+#include <random>
 using namespace WordsFactory;
 using std::cout;
 using std::endl;
@@ -14,6 +15,8 @@ int main()
 	auto & msg = doc["fmi"]; // closest to fmi
 	cout << "Compared to fmi" << endl;
 	cout << msg << endl;
-	
+	auto filtered = doc.filter_messages("FmI");
+	cout << "Filtered with FmI" << endl;
+	cout << filtered << endl;
 	return 0;
 }
