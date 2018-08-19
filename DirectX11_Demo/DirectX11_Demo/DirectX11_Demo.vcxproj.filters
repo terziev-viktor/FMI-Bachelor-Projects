@@ -18,22 +18,25 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="D3D11_BASE.cpp">
+    <ClCompile Include="DX11_BASE.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="D3D11_DEMO.cpp">
+    <ClCompile Include="BlankDemo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TriangleDemo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="D3D11_BASE.h">
+    <ClInclude Include="DX11_BASE.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="D3D11_DEMO.h">
+    <ClInclude Include="BlankDemo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
+    <ClInclude Include="TriangleDemo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
