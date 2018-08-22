@@ -128,12 +128,18 @@
   <ItemGroup>
     <ClCompile Include="BlankDemo.cpp" />
     <ClCompile Include="DX11_BASE.cpp" />
+    <ClCompile Include="GameSprite.cpp" />
+    <ClCompile Include="GameSpriteDemo.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="TextureDemo.cpp" />
     <ClCompile Include="TriangleDemo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BlankDemo.h" />
     <ClInclude Include="DX11_BASE.h" />
+    <ClInclude Include="GameSprite.h" />
+    <ClInclude Include="GameSpriteDemo.h" />
+    <ClInclude Include="TextureDemo.h" />
     <ClInclude Include="TriangleDemo.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

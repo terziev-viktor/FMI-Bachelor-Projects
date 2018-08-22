@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Demos Headers">
+      <UniqueIdentifier>{284627cf-4efe-4e07-8ac5-0db27e93169e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Demos Source">
+      <UniqueIdentifier>{fcc72194-ccdc-49e4-ad01-98be4b533484}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -21,22 +27,40 @@
     <ClCompile Include="DX11_BASE.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BlankDemo.cpp">
+    <ClCompile Include="GameSprite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BlankDemo.cpp">
+      <Filter>Demos Source</Filter>
+    </ClCompile>
+    <ClCompile Include="GameSpriteDemo.cpp">
+      <Filter>Demos Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureDemo.cpp">
+      <Filter>Demos Source</Filter>
+    </ClCompile>
     <ClCompile Include="TriangleDemo.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Demos Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DX11_BASE.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BlankDemo.h">
+    <ClInclude Include="GameSprite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BlankDemo.h">
+      <Filter>Demos Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="GameSpriteDemo.h">
+      <Filter>Demos Headers</Filter>
+    </ClInclude>
     <ClInclude Include="TriangleDemo.h">
-      <Filter>Header Files</Filter>
+      <Filter>Demos Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureDemo.h">
+      <Filter>Demos Headers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

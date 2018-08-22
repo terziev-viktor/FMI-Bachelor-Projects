@@ -77,10 +77,12 @@ bool TriangleDemo::LoadContent()
 	ZeroMemory(&vertexDesc, sizeof(vertexDesc));
 	vertexDesc.Usage = D3D11_USAGE_DEFAULT;
 	vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexDesc.ByteWidth = sizeof(VertexPos) * 3;	
+	vertexDesc.ByteWidth = sizeof(VertexPos) * 3;
+	
 	D3D11_SUBRESOURCE_DATA resourceData;
 	ZeroMemory(&resourceData, sizeof(resourceData));
-	resourceData.pSysMem = vertices;	d3dResult = this->d3dDevice_->CreateBuffer(&vertexDesc,
+	resourceData.pSysMem = vertices;
+	d3dResult = this->d3dDevice_->CreateBuffer(&vertexDesc,
 		&resourceData, &vertexBuffer_);
 	if (FAILED(d3dResult))
 	{

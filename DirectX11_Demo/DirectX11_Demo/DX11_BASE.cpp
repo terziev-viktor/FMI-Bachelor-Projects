@@ -88,7 +88,9 @@ bool DX11_BASE::Initialize(HINSTANCE hInstance, HWND hwnd)
 	result = d3dDevice_->CreateRenderTargetView(backBufferTexture, 0,
 		&backBufferTarget_);
 	if (backBufferTexture)
+	{
 		backBufferTexture->Release();
+	}
 	if (FAILED(result))
 	{
 		DXTRACE_MSG("Failed to create the render target view!");
