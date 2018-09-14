@@ -2,14 +2,8 @@
     Beginning DirectX 11 Game Programming
     By Allen Sherrod and Wendy Jones
 
-    Texture Mapping Shader for the Game Sprite Demo
+    Texture Mapping Shader
 */
-
-
-cbuffer cbChangesPerFrame : register( b0 )
-{
-    matrix mvp_;
-};
 
 
 Texture2D colorMap_ : register( t0 );
@@ -32,7 +26,7 @@ struct PS_Input
 PS_Input VS_Main( VS_Input vertex )
 {
     PS_Input vsOut = ( PS_Input )0;
-    vsOut.pos = mul( vertex.pos, mvp_ );
+    vsOut.pos = vertex.pos;
     vsOut.tex0 = vertex.tex0;
 
     return vsOut;

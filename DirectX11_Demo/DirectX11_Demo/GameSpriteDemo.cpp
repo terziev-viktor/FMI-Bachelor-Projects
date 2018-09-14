@@ -222,6 +222,8 @@ void GameSpriteDemo::UnloadContent()
 	vertexBuffer_ = 0;
 	mvpCB_ = 0;
 	alphaBlendState_ = 0;
+
+	DX11_BASE::UnloadContent();
 }
 
 

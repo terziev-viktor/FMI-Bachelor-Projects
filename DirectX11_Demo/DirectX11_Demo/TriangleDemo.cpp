@@ -109,11 +109,16 @@ void TriangleDemo::UnloadContent()
 	{
 		this->vertexBuffer_->Release();
 	}
+	this->solidColorPS_ = 0;
+	this->solidColorVS_ = 0;
+	this->inputLayout_ = 0;
+	this->vertexBuffer_ = 0;
 	DX11_BASE::UnloadContent();
 }
 
 void TriangleDemo::Update(float dt)
 {
+
 }
 
 void TriangleDemo::Render()

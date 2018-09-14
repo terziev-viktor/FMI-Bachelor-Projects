@@ -1,7 +1,7 @@
 #include <Windows.h>
 #include <memory>
 #include <ctime>
-#include "GameSpriteDemo.h"
+#include "TextureDemo.h"
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -56,13 +56,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE prevInstance, LPWSTR cmdLine,
 	}
 		
 	ShowWindow(hwnd, cmdShow);
-	std::auto_ptr<DX11_BASE> demo(new GameSpriteDemo());
+	std::auto_ptr<DX11_BASE> demo(new TextureDemo());
 
 	// Demo Initialize
 	bool result = demo->Initialize(hInstance, hwnd);
 
 	// Error reporting of there is an issue
-	if (result == false)
+	if (!result)
 	{
 		return -1;
 	}
@@ -78,7 +78,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE prevInstance, LPWSTR cmdLine,
 		{
 			demo->Update(0.0f);
 			demo->Render();
-			Sleep(2000);
+			Sleep(1000);
 		}
 	}
 	// Demo Shutdown
