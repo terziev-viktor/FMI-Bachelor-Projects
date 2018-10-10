@@ -23,7 +23,7 @@ bool TextureDemo::LoadContent()
 {
 	ID3DBlob* vsBuffer = 0;
 
-	bool compileResult = CompileD3DShader("TextureMap.fx", "VS_Main", "vs_4_0", &vsBuffer);
+	bool compileResult = CompileD3DShader("TextureMap_texture_demo.fx", "VS_Main", "vs_4_0", &vsBuffer);
 
 	if (!compileResult)
 	{
@@ -64,7 +64,7 @@ bool TextureDemo::LoadContent()
 
 	ID3DBlob* psBuffer = 0;
 
-	compileResult = CompileD3DShader("TextureMap.fx", "PS_Main", "ps_4_0", &psBuffer);
+	compileResult = CompileD3DShader("TextureMap_texture_demo.fx", "PS_Main", "ps_4_0", &psBuffer);
 
 	if (compileResult == false)
 	{
@@ -113,7 +113,7 @@ bool TextureDemo::LoadContent()
 	}
 
 	d3dResult = D3DX11CreateShaderResourceViewFromFile(d3dDevice_,
-		"decal.dds", 0, 0, &colorMap_, 0);
+		"decal_texture_demo.dds", 0, 0, &colorMap_, 0);
 
 	if (FAILED(d3dResult))
 	{

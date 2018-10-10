@@ -27,7 +27,7 @@ bool GameSpriteDemo::LoadContent()
 {
 	ID3DBlob* vsBuffer = 0;
 
-	bool compileResult = CompileD3DShader("TextureMap.fx", "VS_Main", "vs_4_0", &vsBuffer);
+	bool compileResult = CompileD3DShader("TextureMap_game_sprite_demo.fx", "VS_Main", "vs_4_0", &vsBuffer);
 
 	if (compileResult == false)
 	{
@@ -53,7 +53,7 @@ bool GameSpriteDemo::LoadContent()
 	D3D11_INPUT_ELEMENT_DESC solidColorLayout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
 	unsigned int totalLayoutElements = ARRAYSIZE(solidColorLayout);
@@ -71,7 +71,7 @@ bool GameSpriteDemo::LoadContent()
 
 	ID3DBlob* psBuffer = 0;
 
-	compileResult = CompileD3DShader("TextureMap.fx", "PS_Main", "ps_4_0", &psBuffer);
+	compileResult = CompileD3DShader("TextureMap_game_sprite_demo.fx", "PS_Main", "ps_4_0", &psBuffer);
 
 	if (compileResult == false)
 	{
@@ -92,7 +92,7 @@ bool GameSpriteDemo::LoadContent()
 
 
 	d3dResult = D3DX11CreateShaderResourceViewFromFile(d3dDevice_,
-		"decal.dds", 0, 0, &colorMap_, 0);
+		"decal_game_sprite_demo.dds", 0, 0, &colorMap_, 0);
 
 	if (FAILED(d3dResult))
 	{
@@ -101,13 +101,15 @@ bool GameSpriteDemo::LoadContent()
 	}
 
 	D3D11_SAMPLER_DESC colorMapDesc;
-	ZeroMemory(&colorMapDesc, sizeof(colorMapDesc));
-	colorMapDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	colorMapDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	colorMapDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	colorMapDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	colorMapDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	colorMapDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	{
+		ZeroMemory(&colorMapDesc, sizeof(colorMapDesc));
+		colorMapDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		colorMapDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		colorMapDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		colorMapDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+		colorMapDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		colorMapDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	}
 
 	d3dResult = d3dDevice_->CreateSamplerState(&colorMapDesc, &colorMapSampler_);
 
@@ -131,23 +133,27 @@ bool GameSpriteDemo::LoadContent()
 	VertexPos vertices[] =
 	{
 		{ XMFLOAT3(halfWidth,  halfHeight, 1.0f), XMFLOAT2(1.0f, 0.0f) },
-	{ XMFLOAT3(halfWidth, -halfHeight, 1.0f), XMFLOAT2(1.0f, 1.0f) },
-	{ XMFLOAT3(-halfWidth, -halfHeight, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+		{ XMFLOAT3(halfWidth, -halfHeight, 1.0f), XMFLOAT2(1.0f, 1.0f) },
+		{ XMFLOAT3(-halfWidth, -halfHeight, 1.0f), XMFLOAT2(0.0f, 1.0f) },
 
-	{ XMFLOAT3(-halfWidth, -halfHeight, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-	{ XMFLOAT3(-halfWidth,  halfHeight, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-	{ XMFLOAT3(halfWidth,  halfHeight, 1.0f), XMFLOAT2(1.0f, 0.0f) },
+		{ XMFLOAT3(-halfWidth, -halfHeight, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+		{ XMFLOAT3(-halfWidth,  halfHeight, 1.0f), XMFLOAT2(0.0f, 0.0f) },
+		{ XMFLOAT3(halfWidth,  halfHeight, 1.0f), XMFLOAT2(1.0f, 0.0f) },
 	};
 
 	D3D11_BUFFER_DESC vertexDesc;
-	ZeroMemory(&vertexDesc, sizeof(vertexDesc));
-	vertexDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexDesc.ByteWidth = sizeof(VertexPos) * 6;
-
+	{
+		ZeroMemory(&vertexDesc, sizeof(vertexDesc));
+		vertexDesc.Usage = D3D11_USAGE_DEFAULT;
+		vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		vertexDesc.ByteWidth = sizeof(VertexPos) * 6;
+	}
+	
 	D3D11_SUBRESOURCE_DATA resourceData;
-	ZeroMemory(&resourceData, sizeof(resourceData));
-	resourceData.pSysMem = vertices;
+	{
+		ZeroMemory(&resourceData, sizeof(resourceData));
+		resourceData.pSysMem = vertices;
+	}
 
 	d3dResult = d3dDevice_->CreateBuffer(&vertexDesc, &resourceData, &vertexBuffer_);
 
@@ -157,12 +163,13 @@ bool GameSpriteDemo::LoadContent()
 		return false;
 	}
 
-
 	D3D11_BUFFER_DESC constDesc;
-	ZeroMemory(&constDesc, sizeof(constDesc));
-	constDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	constDesc.ByteWidth = sizeof(XMMATRIX);
-	constDesc.Usage = D3D11_USAGE_DEFAULT;
+	{
+		ZeroMemory(&constDesc, sizeof(constDesc));
+		constDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		constDesc.ByteWidth = sizeof(XMMATRIX);
+		constDesc.Usage = D3D11_USAGE_DEFAULT;
+	}
 
 	d3dResult = d3dDevice_->CreateBuffer(&constDesc, 0, &mvpCB_);
 
@@ -182,17 +189,18 @@ bool GameSpriteDemo::LoadContent()
 	XMMATRIX projection = XMMatrixOrthographicOffCenterLH(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);
 	vpMatrix_ = XMMatrixMultiply(view, projection);
 
-
 	D3D11_BLEND_DESC blendDesc;
-	ZeroMemory(&blendDesc, sizeof(blendDesc));
-	blendDesc.RenderTarget[0].BlendEnable = TRUE;
-	blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-	blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
-	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
-	blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-	blendDesc.RenderTarget[0].RenderTargetWriteMask = 0x0F;
+	{
+		ZeroMemory(&blendDesc, sizeof(blendDesc));
+		blendDesc.RenderTarget[0].BlendEnable = TRUE;
+		blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+		blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+		blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ZERO;
+		blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		blendDesc.RenderTarget[0].RenderTargetWriteMask = 0x0F;
+	}
 
 	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
