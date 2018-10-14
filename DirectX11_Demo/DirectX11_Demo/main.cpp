@@ -1,7 +1,7 @@
 #include <Windows.h>
 #include <memory>
 #include <ctime>
-#include "GameSpriteDemo.h"
+#include "TextDemo.h"
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -56,7 +56,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE prevInstance, LPWSTR cmdLine,
 	}
 		
 	ShowWindow(hwnd, cmdShow);
-	std::auto_ptr<DX11_BASE> demo(new GameSpriteDemo());
+	std::auto_ptr<DX11_BASE> demo(new TextDemo());
 
 	// Demo Initialize
 	bool result = demo->Initialize(hInstance, hwnd);
