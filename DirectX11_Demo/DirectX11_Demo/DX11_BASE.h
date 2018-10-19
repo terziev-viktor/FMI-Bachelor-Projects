@@ -2,9 +2,17 @@
 #ifndef DX11_BASE_H_
 #define DX11_BASE_H_
 
+#define KEYDOWN(name, key) (name[key] & 0x80);
+
 #include <d3d11.h>
 #include <D3DX11.h>
 #include <DxErr.h>
+
+
+struct VertexPos
+{
+	XMFLOAT3 pos;
+};
 
 class DX11_BASE
 {
@@ -34,12 +42,18 @@ public:
 protected:
 	HINSTANCE hInstance_;
 	HWND hWnd_;
+
 	D3D_DRIVER_TYPE driverType_;
 	D3D_FEATURE_LEVEL featureLevel_;
 	ID3D11Device * d3dDevice_;
 	ID3D11DeviceContext * d3dContext_;
 	IDXGISwapChain * swapChain_;
 	ID3D11RenderTargetView * backBufferTarget_;
+
+	LPDIRECTINPUT8 directInput_;
+	LPDIRECTINPUTDEVICE8 keyboardDevice_;
+	char keyboardKeys_[256];
+	char prevKeyboardKeys_[256];
 };
 
 #endif // !DX11_BASE

@@ -1,6 +1,8 @@
 #include "TextDemo.h"
 #include <xnamath.h>
 
+#define VK_K 0x4B
+
 struct VertexPos
 {
 	XMFLOAT3 pos;
@@ -153,6 +155,15 @@ void TextDemo::UnloadContent()
 
 void TextDemo::Update(float dt)
 {
+	if (GetAsyncKeyState(VK_ESCAPE))
+	{
+		PostQuitMessage(0);
+		return;
+	}
+	if (GetAsyncKeyState(VK_K))
+	{
+		
+	}
 }
 
 void TextDemo::Render()

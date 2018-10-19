@@ -1,11 +1,6 @@
 #include "TriangleDemo.h"
 #include <xnamath.h>
 
-struct VertexPos
-{
-	XMFLOAT3 pos;
-};
-
 TriangleDemo::TriangleDemo()
 	:solidColorVS_(0), solidColorPS_(0), inputLayout_(0), vertexBuffer_(0)
 {

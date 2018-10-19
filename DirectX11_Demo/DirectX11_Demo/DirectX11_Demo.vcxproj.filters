@@ -43,6 +43,9 @@
     <ClCompile Include="TextDemo.cpp">
       <Filter>Source Files\Demos Source</Filter>
     </ClCompile>
+    <ClCompile Include="KeyboardDemo.cpp">
+      <Filter>Source Files\Demos Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DX11_BASE.h">
@@ -64,6 +67,9 @@
       <Filter>Header Files\Demos Headers</Filter>
     </ClInclude>
     <ClInclude Include="TextDemo.h">
+      <Filter>Header Files\Demos Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyboardDemo.h">
       <Filter>Header Files\Demos Headers</Filter>
     </ClInclude>
   </ItemGroup>
