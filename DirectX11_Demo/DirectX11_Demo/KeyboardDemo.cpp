@@ -1,63 +1,88 @@
 #include "KeyboardDemo.h"
 #include <xnamath.h>
 
+struct VertexPos
+{
+	XMFLOAT3 pos;
+};
+
+KeyboardDemo::KeyboardDemo()
+{
+}
+
+KeyboardDemo::~KeyboardDemo()
+{
+}
+
 bool KeyboardDemo::LoadContent()
 {
-	ID3DBlob * vsBuffer = NULL;
-	bool CompileResult = CompileD3DShader("SolidGreenColor.fx", "VS_Main", "vs_4_0", &vsBuffer);
+	ID3DBlob* vsBuffer = 0;
 
-	if (!CompileResult)
+	bool compileResult = CompileD3DShader("CustomColor.hlsl", "VS_Main", "vs_4_0", &vsBuffer);
+
+	if (compileResult == false)
 	{
-		MessageBox(0, "Error loading vertex shader.", "Compile Error", MB_OK);
+		MessageBox(0, "Error loading vertex shader!", "Compile Error", MB_OK);
 		return false;
 	}
-	HRESULT d3dResult =
-		this->d3dDevice_->CreateVertexShader(vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), 0, &customColorVS_);
+
+	HRESULT d3dResult;
+
+	d3dResult = d3dDevice_->CreateVertexShader(vsBuffer->GetBufferPointer(),
+		vsBuffer->GetBufferSize(), 0, &customColorVS_);
+
 	if (FAILED(d3dResult))
 	{
 		if (vsBuffer)
-		{
 			vsBuffer->Release();
-		}
+
 		return false;
 	}
 
 	D3D11_INPUT_ELEMENT_DESC solidColorLayout[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-		0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
-	UINT totalLayoutElements = ARRAYSIZE(solidColorLayout);
-	d3dResult = this->d3dDevice_->CreateInputLayout(solidColorLayout, totalLayoutElements, vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), &this->inputLayout_);
+
+	unsigned int totalLayoutElements = ARRAYSIZE(solidColorLayout);
+
+	d3dResult = d3dDevice_->CreateInputLayout(solidColorLayout, totalLayoutElements,
+		vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), &inputLayout_);
+
 	vsBuffer->Release();
+
 	if (FAILED(d3dResult))
 	{
 		return false;
 	}
-	ID3DBlob * psBuffer = NULL;
-	CompileResult = CompileD3DShader("SolidGreenColor.fx", "PS_Main", "ps_4_0", &psBuffer);
-	if (!CompileResult)
+
+	ID3DBlob* psBuffer = 0;
+
+	compileResult = CompileD3DShader("CustomColor.hlsl", "PS_Main", "ps_4_0", &psBuffer);
+
+	if (compileResult == false)
 	{
-		if (psBuffer)
-		{
-			psBuffer->Release();
-		}
-		MessageBox(0, "Error loading pixel shader", "Compile Error", MB_OK);
+		MessageBox(0, "Error loading pixel shader!", "Compile Error", MB_OK);
 		return false;
 	}
-	d3dResult = this->d3dDevice_->CreatePixelShader(psBuffer->GetBufferPointer(), psBuffer->GetBufferSize(), 0, &this->customColorPS_);
+
+	d3dResult = d3dDevice_->CreatePixelShader(psBuffer->GetBufferPointer(),
+		psBuffer->GetBufferSize(), 0, &customColorPS_);
+
 	psBuffer->Release();
+
 	if (FAILED(d3dResult))
 	{
 		return false;
 	}
-	// Create a triangle
+
 	VertexPos vertices[] =
 	{
-		XMFLOAT3(0.5f, 0.5f, 0.5f),
+		XMFLOAT3(0.5f,  0.5f, 0.5f),
 		XMFLOAT3(0.5f, -0.5f, 0.5f),
 		XMFLOAT3(-0.5f, -0.5f, 0.5f)
 	};
+
 	D3D11_BUFFER_DESC vertexDesc;
 	ZeroMemory(&vertexDesc, sizeof(vertexDesc));
 	vertexDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -67,22 +92,28 @@ bool KeyboardDemo::LoadContent()
 	D3D11_SUBRESOURCE_DATA resourceData;
 	ZeroMemory(&resourceData, sizeof(resourceData));
 	resourceData.pSysMem = vertices;
-	d3dResult = this->d3dDevice_->CreateBuffer(&vertexDesc,
-		&resourceData, &vertexBuffer_);
+
+	d3dResult = d3dDevice_->CreateBuffer(&vertexDesc, &resourceData, &vertexBuffer_);
+
 	if (FAILED(d3dResult))
 	{
 		return false;
 	}
-	D3D11_BUFFER_DESC constBufferDesc;
-	ZeroMemory(&constBufferDesc, sizeof(constBufferDesc));
-	constBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	constBufferDesc.ByteWidth = sizeof(XMFLOAT4);
-	constBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	d3dResult = this->d3dDevice_->CreateBuffer(&constBufferDesc, 0, &this->colorCB_);
+
+
+	D3D11_BUFFER_DESC constDesc;
+	ZeroMemory(&constDesc, sizeof(constDesc));
+	constDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	constDesc.ByteWidth = sizeof(XMFLOAT4);
+	constDesc.Usage = D3D11_USAGE_DEFAULT;
+
+	d3dResult = d3dDevice_->CreateBuffer(&constDesc, 0, &colorCB_);
+
 	if (FAILED(d3dResult))
 	{
 		return false;
 	}
+
 	return true;
 }
 
@@ -98,13 +129,29 @@ void KeyboardDemo::UnloadContent()
 	inputLayout_ = 0;
 	vertexBuffer_ = 0;
 	colorCB_ = 0;
-	
+
 	DX11_BASE::UnloadContent();
 }
 
 void KeyboardDemo::Update(float dt)
 {
+	this->keyboardDevice_->GetDeviceState(sizeof(this->keyboardKeys_), (LPVOID)&this->keyboardKeys_);
+	if (GetAsyncKeyState(VK_ESCAPE))
+	{
+		PostQuitMessage(0);
+	}
+	if (KEYDOWN(prevKeyboardKeys_, DIK_DOWN) && !KEYDOWN(keyboardKeys_, DIK_DOWN))
+	{
+		selectedColor_--;
+	}
 
+	if (KEYDOWN(prevKeyboardKeys_, DIK_UP) && !KEYDOWN(keyboardKeys_, DIK_UP))
+	{
+		selectedColor_++;
+	}
+	memcpy(prevKeyboardKeys_, keyboardKeys_, sizeof(keyboardKeys_));
+	if (selectedColor_ < 0) selectedColor_ = 2;
+	if (selectedColor_ > 2) selectedColor_ = 0;
 }
 
 void KeyboardDemo::Render()

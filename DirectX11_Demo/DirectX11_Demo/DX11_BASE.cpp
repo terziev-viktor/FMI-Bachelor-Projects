@@ -105,6 +105,37 @@ bool DX11_BASE::Initialize(HINSTANCE hInstance, HWND hwnd)
 	viewport.TopLeftX = 0.0f;
 	viewport.TopLeftY = 0.0f;
 	d3dContext_->RSSetViewports(1, &viewport);
+
+
+	ZeroMemory(&this->keyboardKeys_, sizeof(this->keyboardKeys_));
+	ZeroMemory(&this->prevKeyboardKeys_, sizeof(this->prevKeyboardKeys_));
+	result = DirectInput8Create(this->hInstance_, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&this->directInput_, 0);
+	if (FAILED(result))
+	{
+		return false;
+	}
+	result = this->directInput_->CreateDevice(GUID_SysKeyboard, &this->keyboardDevice_, 0);
+	if (FAILED(result))
+	{
+		return false;
+	}
+	result = keyboardDevice_->SetDataFormat(&c_dfDIKeyboard);
+	if (FAILED(result))
+	{
+		return false;
+	}
+	result = this->keyboardDevice_->SetCooperativeLevel(this->hWnd_, DISCL_FOREGROUND |
+		DISCL_NONEXCLUSIVE);
+	if (FAILED(result))
+	{
+		return false;
+	}
+	result = this->keyboardDevice_->Acquire();
+	if (FAILED(result))
+	{
+		return false;
+	}
+
 	return LoadContent();
 }
 

@@ -2,17 +2,12 @@
 #ifndef DX11_BASE_H_
 #define DX11_BASE_H_
 
-#define KEYDOWN(name, key) (name[key] & 0x80);
-
 #include <d3d11.h>
 #include <D3DX11.h>
 #include <DxErr.h>
+#include <dinput.h>
 
-
-struct VertexPos
-{
-	XMFLOAT3 pos;
-};
+#define KEYDOWN( name, key ) ( name[key] & 0x80 )
 
 class DX11_BASE
 {
