@@ -1,7 +1,7 @@
 #include <Windows.h>
 #include <memory>
 #include <ctime>
-#include "KeyboardDemo.h"
+#include "TriangleDemo.h"
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -67,7 +67,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE prevInstance, LPWSTR cmdLine,
 	}
 		
 	ShowWindow(hwnd, cmdShow);
-	std::auto_ptr<DX11_BASE> demo(new KeyboardDemo());
+	std::auto_ptr<DX11_BASE> demo(new TriangleDemo());
 
 	// Demo Initialize
 	bool result = demo->Initialize(hInstance, hwnd);
