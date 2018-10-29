@@ -16,9 +16,9 @@ public:
 
 	Student(const char * name, UNI uni);
 	
-	const char * getName() const;
+	const char * get_name() const;
 
-	UNI getUNI() const;
+	UNI get_UNI() const;
 };
 
 const char * UNIAsStr(UNI uni);

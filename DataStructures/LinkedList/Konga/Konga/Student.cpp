@@ -13,12 +13,12 @@ Student::Student(const char * name, UNI uni)
 	this->uni = uni;
 }
 
-const char * Student::getName() const
+const char * Student::get_name() const
 {
 	return name;
 }
 
-UNI Student::getUNI() const
+UNI Student::get_UNI() const
 {
 	return uni;
 }

@@ -1,6 +1,6 @@
 #pragma once
 template<class T>
-class singly_linked_list
+class doubly_linked_list
 {
 private:
 	class node
@@ -8,17 +8,23 @@ private:
 	public:
 		T data;
 		node * next;
-
+		node * prev;
 		node(const T & data, node * next)
 		{
 			this->data = data;
 			this->next = next;
 		}
+		node(const T & data)
+		{
+			this->data = data;
+			this->next = nullptr;
+			this->prev = nullptr;
+		}
 		~node()
 		{
-			if (next)
+			if (this->next)
 			{
-				delete next;
+				delete this->next;
 			}
 		}
 	};
@@ -27,13 +33,13 @@ private:
 	node * last;
 	size_t count;
 public:
-	singly_linked_list()
+	doubly_linked_list()
 		:first(nullptr),last(nullptr),count(0)
 	{
 
 	}
 
-	~singly_linked_list()
+	~doubly_linked_list()
 	{
 		if (this->first)
 		{
@@ -92,28 +98,30 @@ public:
 		return i->data;
 	}
 
-	singly_linked_list<T> & push_back(const T & value)
+	doubly_linked_list<T> & push_back(const T & value)
 	{
 		if (last)
 		{
 			node * next = new node(value, nullptr);
+			next->prev = this->last;
 			this->last->next = next;
 			this->last = next;
 		}
 		else
 		{
-			this->first = new node(value, nullptr);
+			this->first = new node(value);
 			this->last = this->first;
 		}
 		++this->count;
 		return *this;
 	}
 
-	singly_linked_list<T> & push_front(const T & value)
+	doubly_linked_list<T> & push_front(const T & value)
 	{
 		if (first)
 		{
 			node * prev = new node(value, this->first);
+			this->first->prev = prev;
 			this->first = prev;
 		}
 		else
@@ -125,12 +133,23 @@ public:
 		return *this;
 	}
 
-	singly_linked_list<T> & remove_front()
+	doubly_linked_list<T> & remove_front()
 	{
 		node * tmp = this->first;
 		this->first = this->first->next;
+		this->first->prev = nullptr;
 		tmp->next = nullptr;
 		delete tmp;
+		--this->count;
+		return *this;
+	}
+
+	doubly_linked_list<T> & remove_back()
+	{
+		node * tmp = this->last;
+		this->last = this->last->prev;
+		delete tmp;
+		this->last->next = nullptr;
 		--this->count;
 		return *this;
 	}

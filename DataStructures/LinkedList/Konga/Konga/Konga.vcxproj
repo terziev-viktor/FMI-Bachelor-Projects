@@ -119,14 +119,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cstring.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Student.cpp" />
+    <ClCompile Include="UI.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DoublyLinkedList.hpp" />
+    <ClInclude Include="cstring.h" />
     <ClInclude Include="ptr_keeper.hpp" />
-    <ClInclude Include="singly_linked_list.hpp" />
+    <ClInclude Include="doubly_linked_list.hpp" />
     <ClInclude Include="Student.h" />
+    <ClInclude Include="UI.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
