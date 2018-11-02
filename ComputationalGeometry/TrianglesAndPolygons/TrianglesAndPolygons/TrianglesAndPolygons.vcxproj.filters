@@ -13,27 +13,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Libs">
-      <UniqueIdentifier>{2bdddfe6-3e89-4137-9104-1ae0f4ed7e88}</UniqueIdentifier>
+    <Filter Include="libs">
+      <UniqueIdentifier>{73609f3d-e0c0-41ae-87a9-213f3da565eb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Graham.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Triangle.cpp">
+    <ClCompile Include="Source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cool_stack.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="vecta.h">
-      <Filter>Libs</Filter>
-    </ClInclude>
-    <ClInclude Include="Triangle.h">
-      <Filter>Header Files</Filter>
+      <Filter>libs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

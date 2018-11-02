@@ -4,6 +4,7 @@
 #include <stack>
 #include <fstream>
 #include "cool_stack.hpp"
+
 using namespace std;
 
 class Point
@@ -97,7 +98,7 @@ void swap_min_with_first(vector<Point> & points)
 	points[min] = first;
 }
 
-int main()
+void Graham_demo()
 {
 	vector<Point> points;
 	read_points(points);
@@ -124,5 +125,10 @@ int main()
 		cout << hull.top() << endl;
 		hull.pop();
 	}
+}
+
+int main()
+{
+	Graham_demo();
 	return 0;
 }
