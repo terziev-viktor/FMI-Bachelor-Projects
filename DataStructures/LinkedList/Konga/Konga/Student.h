@@ -1,6 +1,9 @@
 #pragma once
-#include <cstring>
 #include <iostream>
+
+#include <string>
+using std::string;
+
 enum UNI
 {
 	FMI, TU, UNWE, UNKNOWN
@@ -8,19 +11,21 @@ enum UNI
 
 class Student
 {
-private:
+public:
 	UNI uni;
-	char name[100];
+	string name;
 public:
 	Student();
 
-	Student(const char * name, UNI uni);
+	Student(const string & name, UNI uni);
 	
-	const char * get_name() const;
+	const string & get_name() const;
 
 	UNI get_UNI() const;
 };
 
-const char * UNIAsStr(UNI uni);
+string UNI_to_string(UNI uni);
+
+UNI string_to_UNI(const string & str);
 
 std::ostream & operator<<(std::ostream & out, const Student & obj);

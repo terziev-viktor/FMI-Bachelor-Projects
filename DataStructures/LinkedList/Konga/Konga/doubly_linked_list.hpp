@@ -31,12 +31,164 @@ private:
 
 	node * first;
 	node * last;
-	size_t count;
+
+	const node * get_node_at(size_t at) const
+	{
+		if (at == 0)
+		{
+			return this->first;
+		}
+		node * i = this->first;
+		while (at > 0)
+		{
+			if (i == nullptr)
+			{
+				throw std::out_of_range("Index out of range for get_node_at(size_t at)");
+			}
+			i = i->next;
+			--at;
+		}
+		return i;
+	}
+
+	node * get_node_at(size_t at)
+	{
+		if (at == 0)
+		{
+			return this->first;
+		}
+		node * i = this->first;
+		while (at > 0)
+		{
+			if (i == nullptr)
+			{
+				throw std::out_of_range("Index out of range for get_node_at(size_t at)");
+			}
+			i = i->next;
+			--at;
+		}
+		return i;
+	}
+
+	const node * find_node(bool(*comparison)(const T & n)) const
+	{
+		node * i = this->first;
+		while (!comparison(i->data))
+		{
+			i = i->next;
+			if (i == nullptr)
+			{
+				return nullptr;
+			}
+		}
+		return i;
+	}
+
+	node * find_node(bool(*comparison)(const T & n))
+	{
+		node * i = this->first;
+		while (!comparison(i->data))
+		{
+			i = i->next;
+			if (i == nullptr)
+			{
+				return nullptr;
+			}
+		}
+		return i;
+	}
+
+	void copy_from(const doubly_linked_list<T> & other)
+	{
+		for (iterator it = other.begin(); !it.is_done(); ++it)
+		{
+			this->push_back(*it);
+		}
+	}
+
 public:
+
+	class iterator
+	{
+		node * current;
+	public:
+		iterator(node * first)
+		{
+			this->current = first;
+		}
+		bool is_done() const
+		{
+			return this->current == nullptr;
+		}
+
+		const T & operator*() const { return this->current->data; }
+
+		// ++it
+		iterator & operator++()
+		{
+			this->current = this->current->next;
+			return *this;
+		}
+		// it++
+		iterator operator++(int)
+		{
+			iterator temp(this->current);
+			this->current = this->current->next;
+			return temp;
+		}
+	};
+
+	class rev_iterator
+	{
+	private:
+		node * current;
+	public:
+		rev_iterator(node * last)
+		{
+			this->current = last;
+		}
+		bool is_done() const
+		{
+			return this->current == nullptr;
+		}
+
+		const T & operator*() const { return this->current->data; }
+
+		// --it
+		rev_iterator & operator--()
+		{
+			this->current = this->current->prev;
+			return *this;
+		}
+		// it++
+		rev_iterator operator--(int)
+		{
+			rev_iterator temp(this->current);
+			this->current = this->current->prev;
+			return temp;
+		}
+	};
+
 	doubly_linked_list()
-		:first(nullptr),last(nullptr),count(0)
+		:first(nullptr),last(nullptr)
 	{
 
+	}
+
+	doubly_linked_list(const doubly_linked_list & other)
+	{
+		this->copy_from(other);
+	}
+
+	doubly_linked_list<T> & operator=(const doubly_linked_list<T> & other)
+	{
+		if (this->first)
+		{
+			delete this->first;
+		}
+		this->first = nullptr;
+		this->last = nullptr;
+		this->copy_from(other);
 	}
 
 	~doubly_linked_list()
@@ -47,55 +199,102 @@ public:
 		}
 	}
 
-	size_t get_count() const
+	bool empty() const
 	{
-		return this->count;
+		return this->first == nullptr;
 	}
+
+	iterator begin() const
+	{
+		return iterator(this->first);
+	}
+
+	rev_iterator begin_back() const
+	{
+		return rev_iterator(this->last);
+	}
+	
+	const T & get_last() const { return this->last->data; }
+
+	T get_last() { return this->last->data;	}
+
+	const T & get_first() const { return this->first->data; }
+
+	T get_first() { return this->first->data; }
 
 	const T & operator[](size_t at) const
 	{
-		if (at >= count)
-		{
-			throw "out of range";
-		}
-		if (at == 0)
-		{
-			return this->first->data;
-		}
-		if (at == this->count - 1)
-		{
-			return this->last->data;
-		}
-		node * i = this->first;
-		while (at > 0)
-		{
-			i = i->next;
-			--at;
-		}
-		return i->data;
+		return get_node_at(at)->data;
 	}
 
 	T & operator[](size_t at)
 	{
-		if (at >= count)
-		{
-			throw "out of range";
-		}
+		return this->get_node_at(at)->data;
+	}
+
+	doubly_linked_list<T> & append(doubly_linked_list<T> & other)
+	{
+		this->last->next = other.first;
+		this->last = other.last;
+		other.first = nullptr;
+		other.last = nullptr;
+		return *this;
+	}
+
+	// cuts this list from position <at> and returns a pointer to a new list storing the remaining elements
+	doubly_linked_list<T> * cut(size_t at)
+	{
+		doubly_linked_list<T> * out = new doubly_linked_list<T>();
+
 		if (at == 0)
 		{
-			return this->first->data;
+			out->first = this->first;
+			out->last = this->last;
+			this->first = nullptr;
+			this->last = nullptr;
+			return out;
 		}
-		if (at == this->count - 1)
+		node * this_new_last = this->get_node_at(at - 1);
+		node * other_new_first = this_new_last->next;
+		
+		this_new_last->next = nullptr;
+		other_new_first->prev = nullptr;
+
+		out->first = other_new_first;
+		out->last = this->last;
+
+		this->last = this_new_last;
+		return out;
+	}
+
+	doubly_linked_list<T> * cut(bool(*comparison)(const T &))
+	{
+		node * n = this->find_node(comparison);
+		if (n == nullptr)
 		{
-			return this->last->data;
+			throw std::exception("Could not find element using comparison function");
 		}
-		node * i = this->first;
-		while (at > 0)
+		doubly_linked_list<T> * out = new doubly_linked_list<T>();
+		if (n->prev == nullptr)
 		{
-			i = i->next;
-			--at;
+			out->first = this->first;
+			out->last = this->last;
+			this->last = nullptr;
+			this->first = nullptr;
+			return out;
 		}
-		return i->data;
+		if (n->next == nullptr)
+		{
+			return out;
+		}
+		out->first = n;
+		out->last = this->last;
+		this->last = n->prev;
+
+		this->last->next = nullptr;
+		out->first->prev = nullptr;
+
+		return out;
 	}
 
 	doubly_linked_list<T> & push_back(const T & value)
@@ -112,7 +311,6 @@ public:
 			this->first = new node(value);
 			this->last = this->first;
 		}
-		++this->count;
 		return *this;
 	}
 
@@ -129,7 +327,6 @@ public:
 			this->first = new node(value, nullptr);
 			this->last = this->first;
 		}
-		++this->count;
 		return *this;
 	}
 
@@ -140,7 +337,6 @@ public:
 		this->first->prev = nullptr;
 		tmp->next = nullptr;
 		delete tmp;
-		--this->count;
 		return *this;
 	}
 
@@ -150,9 +346,6 @@ public:
 		this->last = this->last->prev;
 		delete tmp;
 		this->last->next = nullptr;
-		--this->count;
 		return *this;
 	}
 };
-
-

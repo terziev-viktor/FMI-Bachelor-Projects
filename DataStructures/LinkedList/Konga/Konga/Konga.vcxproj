@@ -119,13 +119,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="cstring.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Student.cpp" />
     <ClCompile Include="UI.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cstring.h" />
+    <ClInclude Include="konga_exceptions.h" />
     <ClInclude Include="ptr_keeper.hpp" />
     <ClInclude Include="doubly_linked_list.hpp" />
     <ClInclude Include="Student.h" />

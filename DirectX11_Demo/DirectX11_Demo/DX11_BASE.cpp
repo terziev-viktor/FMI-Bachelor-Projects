@@ -23,21 +23,28 @@ bool DX11_BASE::Initialize(HINSTANCE hInstance, HWND hwnd)
 {
 	hInstance_ = hInstance;
 	hWnd_ = hwnd;
+
 	RECT dimensions;
 	GetClientRect(hwnd, &dimensions);
+
 	unsigned int width = dimensions.right - dimensions.left;
 	unsigned int height = dimensions.bottom - dimensions.top;
+
 	D3D_DRIVER_TYPE driverTypes[] =
 	{
-		D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_WARP, D3D_DRIVER_TYPE_SOFTWARE
+		D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_WARP,
+		D3D_DRIVER_TYPE_REFERENCE, D3D_DRIVER_TYPE_SOFTWARE
 	};
+
 	unsigned int totalDriverTypes = ARRAYSIZE(driverTypes);
+
 	D3D_FEATURE_LEVEL featureLevels[] =
 	{
 		D3D_FEATURE_LEVEL_11_0,
 		D3D_FEATURE_LEVEL_10_1,
 		D3D_FEATURE_LEVEL_10_0
 	};
+
 	unsigned int totalFeatureLevels = ARRAYSIZE(featureLevels);
 
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
@@ -55,48 +62,57 @@ bool DX11_BASE::Initialize(HINSTANCE hInstance, HWND hwnd)
 	swapChainDesc.SampleDesc.Quality = 0;
 
 	unsigned int creationFlags = 0;
+
 #ifdef _DEBUG
 	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
+
 	HRESULT result;
 	unsigned int driver = 0;
+
 	for (driver = 0; driver < totalDriverTypes; ++driver)
 	{
-		result = D3D11CreateDeviceAndSwapChain(0, driverTypes[driver], 0,
-			creationFlags, featureLevels, totalFeatureLevels,
+		result = D3D11CreateDeviceAndSwapChain(0, driverTypes[driver], 0, creationFlags,
+			featureLevels, totalFeatureLevels,
 			D3D11_SDK_VERSION, &swapChainDesc, &swapChain_,
 			&d3dDevice_, &featureLevel_, &d3dContext_);
+
 		if (SUCCEEDED(result))
 		{
 			driverType_ = driverTypes[driver];
 			break;
 		}
 	}
+
 	if (FAILED(result))
 	{
 		DXTRACE_MSG("Failed to create the Direct3D device!");
 		return false;
 	}
+
 	ID3D11Texture2D* backBufferTexture;
-	result = swapChain_->GetBuffer(0, __uuidof(ID3D11Texture2D),
-		(LPVOID*)&backBufferTexture);
+
+	result = swapChain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferTexture);
+
 	if (FAILED(result))
 	{
 		DXTRACE_MSG("Failed to get the swap chain back buffer!");
 		return false;
 	}
-	result = d3dDevice_->CreateRenderTargetView(backBufferTexture, 0,
-		&backBufferTarget_);
+
+	result = d3dDevice_->CreateRenderTargetView(backBufferTexture, 0, &backBufferTarget_);
+
 	if (backBufferTexture)
-	{
 		backBufferTexture->Release();
-	}
+
 	if (FAILED(result))
 	{
 		DXTRACE_MSG("Failed to create the render target view!");
 		return false;
 	}
+
 	d3dContext_->OMSetRenderTargets(1, &backBufferTarget_, 0);
+
 	D3D11_VIEWPORT viewport;
 	viewport.Width = static_cast<float>(width);
 	viewport.Height = static_cast<float>(height);
@@ -104,33 +120,42 @@ bool DX11_BASE::Initialize(HINSTANCE hInstance, HWND hwnd)
 	viewport.MaxDepth = 1.0f;
 	viewport.TopLeftX = 0.0f;
 	viewport.TopLeftY = 0.0f;
+
 	d3dContext_->RSSetViewports(1, &viewport);
 
+	ZeroMemory(keyboardKeys_, sizeof(keyboardKeys_));
+	ZeroMemory(prevKeyboardKeys_, sizeof(prevKeyboardKeys_));
 
-	ZeroMemory(&this->keyboardKeys_, sizeof(this->keyboardKeys_));
-	ZeroMemory(&this->prevKeyboardKeys_, sizeof(this->prevKeyboardKeys_));
-	result = DirectInput8Create(this->hInstance_, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&this->directInput_, 0);
+	result = DirectInput8Create(hInstance_, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&directInput_, 0);
+
 	if (FAILED(result))
 	{
 		return false;
 	}
-	result = this->directInput_->CreateDevice(GUID_SysKeyboard, &this->keyboardDevice_, 0);
+
+	result = directInput_->CreateDevice(GUID_SysKeyboard, &keyboardDevice_, 0);
+
 	if (FAILED(result))
 	{
 		return false;
 	}
+
 	result = keyboardDevice_->SetDataFormat(&c_dfDIKeyboard);
+
 	if (FAILED(result))
 	{
 		return false;
 	}
-	result = this->keyboardDevice_->SetCooperativeLevel(this->hWnd_, DISCL_FOREGROUND |
-		DISCL_NONEXCLUSIVE);
+
+	result = keyboardDevice_->SetCooperativeLevel(hWnd_, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
+
 	if (FAILED(result))
 	{
 		return false;
 	}
-	result = this->keyboardDevice_->Acquire();
+
+	result = keyboardDevice_->Acquire();
+
 	if (FAILED(result))
 	{
 		return false;

@@ -2,10 +2,12 @@
 #ifndef DX11_BASE_H_
 #define DX11_BASE_H_
 
-#include <d3d11.h>
-#include <D3DX11.h>
-#include <DxErr.h>
-#include <dinput.h>
+#define DIRECTINPUT_VERSION 0x0800
+
+#include<d3d11.h>
+#include<d3dx11.h>
+#include<DxErr.h>
+#include<dinput.h>
 
 #define KEYDOWN( name, key ) ( name[key] & 0x80 )
 

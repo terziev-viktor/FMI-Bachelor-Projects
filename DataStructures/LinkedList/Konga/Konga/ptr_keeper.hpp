@@ -1,5 +1,7 @@
 #pragma once
+#include <stdexcept>
 
+//	Not exception safe class for keeping pointers to objects. The user is resposible for objects' lifes
 template<class T>
 class ptr_keeper
 {
@@ -96,6 +98,7 @@ public:
 		return this->size;
 	}
 
+	// Deletes all elements that keeped pointers are pointing to.
 	void delete_elements()
 	{
 		for (size_t i = 0; i < this->count; ++i)
@@ -105,6 +108,7 @@ public:
 		this->count = 0;
 	}
 
+	// Keeps a pointer.
 	void keep(T * element)
 	{
 		if (this->count == this->size)
@@ -115,9 +119,29 @@ public:
 		++this->count;
 	}
 
-	T * get(size_t at) const
+	// Gives a pointer at a position <at>
+	T * give(size_t at) const
 	{
+		if (at >= this->get_count())
+		{
+			throw std::out_of_range("Index provided for ptr_keeper::give() is out of range");
+		}
 		return this->buffer[at];
+	}
+
+
+	// Releases a pointer at a position <at>. No longer keeps it.
+	void give_up(size_t at)
+	{
+		if (at >= this->get_count())
+		{
+			throw std::out_of_range("Index provided for ptr_keeper::give_up() is out of range");
+		}
+		for (size_t i = at; i < this->count - 1; ++i)
+		{
+			this->buffer[i] = this->buffer[i + 1];
+		}
+		--count;
 	}
 };
 

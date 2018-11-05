@@ -7,13 +7,13 @@ Student::Student()
 	this->name[0] = '\0';
 }
 
-Student::Student(const char * name, UNI uni)
+Student::Student(const string & name, UNI uni)
 {
-	strcpy_s(this->name, sizeof(this->name), name);
+	this->name = name;
 	this->uni = uni;
 }
 
-const char * Student::get_name() const
+const string & Student::get_name() const
 {
 	return name;
 }
@@ -23,7 +23,7 @@ UNI Student::get_UNI() const
 	return uni;
 }
 
-const char * UNIAsStr(UNI uni)
+string UNI_to_string(UNI uni)
 {
 	switch (uni)
 	{
@@ -38,8 +38,25 @@ const char * UNIAsStr(UNI uni)
 	}
 }
 
+UNI string_to_UNI(const string & str)
+{
+	if (str == "FMI")
+	{
+		return UNI::FMI;
+	}
+	if (str == "TU")
+	{
+		return UNI::TU;
+	}
+	if (str == "UNWE" || str == "UNSS")
+	{
+		return UNI::UNWE;
+	}
+	return UNI::UNKNOWN;
+}
+
 std::ostream & operator<<(std::ostream & out, const Student & obj)
 {
-	out << '(' << obj.getName() << ", " << UNIAsStr(obj.getUNI()) << ')';
+	out << '(' << obj.get_name() << ", " << UNI_to_string(obj.get_UNI()) << ')';
 	return out;
 }

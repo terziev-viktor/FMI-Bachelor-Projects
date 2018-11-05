@@ -24,9 +24,6 @@
     <ClCompile Include="UI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cstring.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Student.h">
@@ -41,7 +38,7 @@
     <ClInclude Include="UI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cstring.h">
+    <ClInclude Include="konga_exceptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
