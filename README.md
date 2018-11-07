@@ -29,3 +29,6 @@ private:
 };
 ```
 Here class Admin can have only one instance. The fist call to getInstancePointer() creates the instance of Admin and every other call returns a pointer to that same object. Constructor, Copy Constructor and operator= are private so the pattern can't be broken.
+
+## Credits 
+* Special thanks to prof. Boyko Banchev for the vecta library. You can find the source for vecta and other works of prof. Banchev on his website [here](http://www.math.bas.bg/bantchev/) :-)
