@@ -23,6 +23,7 @@ void UI::add_command(const command * c)
 
 void UI::execute_command(const string & c)
 {
+	bool command_found = false;
 	for (size_t i = 0; i < this->commands.get_count(); ++i)
 	{
 		if (this->commands.give(i)->get_trigger() == c)
@@ -30,16 +31,18 @@ void UI::execute_command(const string & c)
 			try
 			{
 				std::cout << this->commands.give(i)->execute(this->kongas, this->is_running) << std::endl;
-			}
-			catch (const incompatible_people& e)
-			{
-				std::cout << e.what() << std::endl;
+				command_found = true;
+				break;
 			}
 			catch (const std::exception& e)
 			{
 				std::cout << e.what() << std::endl;
 			}
 		}
+	}
+	if (!command_found)
+	{
+		std::cout << "Unknown command" << std::endl;
 	}
 }
 
@@ -49,8 +52,20 @@ void UI::run()
 	string inp;
 	while (is_running)
 	{
-		std::cin >> inp;
-		this->execute_command(inp);
+		if (this->kongas.get_count() == 0)
+		{
+			std::cout << "No more kongas, the only available command is 'quit'" << std::endl;
+			std::cin >> inp;
+			if (inp == "quit")
+			{
+				this->execute_command(inp);
+			}
+		}
+		else
+		{
+			std::cin >> inp;
+			this->execute_command(inp);
+		}
 	}
 }
 
@@ -95,7 +110,7 @@ string append::execute(ptr_keeper<doubly_linked_list<Student>>& s, bool&) const
 	}
 	else
 	{
-		throw incompatible_people();
+		throw std::exception("Incompatible people");
 	}
 	return "Added student to konga";
 }
@@ -140,7 +155,7 @@ string print::execute(ptr_keeper<doubly_linked_list<Student>>& s, bool &) const
 	{
 		std::cout << "line " << i << ": ";
 		doubly_linked_list<Student> * konga = s.give(i);
-		for (doubly_linked_list<Student>::iterator it = konga->begin(); !it.is_done() ; ++it)
+		for (doubly_linked_list<Student>::iterator it = konga->begin(); !it.is_done(); ++it)
 		{
 			std::cout << *it << " <- ";
 		}
@@ -180,6 +195,19 @@ string remove::execute(ptr_keeper<doubly_linked_list<Student>>& s, bool &) const
 		{
 			s.keep(cut);
 		}
+		else
+		{
+			delete cut;
+		}
+	}
+	else
+	{
+		delete cut;
+	}
+	if (konga->empty())
+	{
+		delete konga;
+		s.give_up(line);
 	}
 	return "removed student from konga";
 }

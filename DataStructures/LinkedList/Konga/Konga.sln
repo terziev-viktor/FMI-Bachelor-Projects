@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Konga", "Konga\Konga.vcxproj", "{266E6B63-3BA5-40A2-8ECF-BDF5D042E1F0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTests", "UnitTests\UnitTests.vcxproj", "{2AC45A43-FD7B-445A-81F8-106211232894}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{266E6B63-3BA5-40A2-8ECF-BDF5D042E1F0}.Release|x64.Build.0 = Release|x64
 		{266E6B63-3BA5-40A2-8ECF-BDF5D042E1F0}.Release|x86.ActiveCfg = Release|Win32
 		{266E6B63-3BA5-40A2-8ECF-BDF5D042E1F0}.Release|x86.Build.0 = Release|Win32
+		{2AC45A43-FD7B-445A-81F8-106211232894}.Debug|x64.ActiveCfg = Debug|x64
+		{2AC45A43-FD7B-445A-81F8-106211232894}.Debug|x64.Build.0 = Debug|x64
+		{2AC45A43-FD7B-445A-81F8-106211232894}.Debug|x86.ActiveCfg = Debug|Win32
+		{2AC45A43-FD7B-445A-81F8-106211232894}.Debug|x86.Build.0 = Debug|Win32
+		{2AC45A43-FD7B-445A-81F8-106211232894}.Release|x64.ActiveCfg = Release|x64
+		{2AC45A43-FD7B-445A-81F8-106211232894}.Release|x64.Build.0 = Release|x64
+		{2AC45A43-FD7B-445A-81F8-106211232894}.Release|x86.ActiveCfg = Release|Win32
+		{2AC45A43-FD7B-445A-81F8-106211232894}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

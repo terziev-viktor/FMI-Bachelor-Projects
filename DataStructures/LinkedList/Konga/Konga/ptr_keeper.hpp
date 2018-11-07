@@ -129,7 +129,6 @@ public:
 		return this->buffer[at];
 	}
 
-
 	// Releases a pointer at a position <at>. No longer keeps it.
 	void give_up(size_t at)
 	{

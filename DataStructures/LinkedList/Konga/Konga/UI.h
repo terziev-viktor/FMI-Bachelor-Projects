@@ -2,7 +2,6 @@
 #include "ptr_keeper.hpp"
 #include "doubly_linked_list.hpp"
 #include "Student.h"
-#include "konga_exceptions.h"
 
 namespace konga_commands
 {

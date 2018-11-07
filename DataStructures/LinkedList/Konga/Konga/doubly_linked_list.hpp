@@ -13,6 +13,7 @@ private:
 		{
 			this->data = data;
 			this->next = next;
+			this->prev = nullptr;
 		}
 		node(const T & data)
 		{
@@ -32,23 +33,14 @@ private:
 	node * first;
 	node * last;
 
-	const node * get_node_at(size_t at) const
+	node * create_node(const T & data, node * next)
 	{
-		if (at == 0)
+		node * n = new(std::nothrow) node(data, next);
+		while (!n)
 		{
-			return this->first;
+			n = new(std::nothrow) node(data, next);
 		}
-		node * i = this->first;
-		while (at > 0)
-		{
-			if (i == nullptr)
-			{
-				throw std::out_of_range("Index out of range for get_node_at(size_t at)");
-			}
-			i = i->next;
-			--at;
-		}
-		return i;
+		return n;
 	}
 
 	node * get_node_at(size_t at)
@@ -66,20 +58,6 @@ private:
 			}
 			i = i->next;
 			--at;
-		}
-		return i;
-	}
-
-	const node * find_node(bool(*comparison)(const T & n)) const
-	{
-		node * i = this->first;
-		while (!comparison(i->data))
-		{
-			i = i->next;
-			if (i == nullptr)
-			{
-				return nullptr;
-			}
 		}
 		return i;
 	}
@@ -235,6 +213,7 @@ public:
 	doubly_linked_list<T> & append(doubly_linked_list<T> & other)
 	{
 		this->last->next = other.first;
+		other.first->prev = this->last;
 		this->last = other.last;
 		other.first = nullptr;
 		other.last = nullptr;
@@ -244,7 +223,12 @@ public:
 	// cuts this list from position <at> and returns a pointer to a new list storing the remaining elements
 	doubly_linked_list<T> * cut(size_t at)
 	{
-		doubly_linked_list<T> * out = new doubly_linked_list<T>();
+		doubly_linked_list<T> * out = new (std::nothrow) doubly_linked_list<T>();
+
+		while (!out)
+		{
+			out = new (std::nothrow) doubly_linked_list<T>();
+		}
 
 		if (at == 0)
 		{
@@ -274,7 +258,12 @@ public:
 		{
 			throw std::exception("Could not find element using comparison function");
 		}
-		doubly_linked_list<T> * out = new doubly_linked_list<T>();
+		doubly_linked_list<T> * out = new(std::nothrow) doubly_linked_list<T>();
+		while (!out)
+		{
+			out = new(std::nothrow) doubly_linked_list<T>();
+		}
+
 		if (n->prev == nullptr)
 		{
 			out->first = this->first;
@@ -301,14 +290,14 @@ public:
 	{
 		if (last)
 		{
-			node * next = new node(value, nullptr);
+			node * next = this->create_node(value, nullptr);
 			next->prev = this->last;
 			this->last->next = next;
 			this->last = next;
 		}
 		else
 		{
-			this->first = new node(value);
+			this->first = this->create_node(value, nullptr);
 			this->last = this->first;
 		}
 		return *this;
@@ -318,13 +307,13 @@ public:
 	{
 		if (first)
 		{
-			node * prev = new node(value, this->first);
+			node * prev = this->create_node(value, this->first);
 			this->first->prev = prev;
 			this->first = prev;
 		}
 		else
 		{
-			this->first = new node(value, nullptr);
+			this->first = this->create_node(value, nullptr);
 			this->last = this->first;
 		}
 		return *this;
@@ -334,7 +323,8 @@ public:
 	{
 		node * tmp = this->first;
 		this->first = this->first->next;
-		this->first->prev = nullptr;
+		if(this->first)
+			this->first->prev = nullptr;
 		tmp->next = nullptr;
 		delete tmp;
 		return *this;
