@@ -20,8 +20,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{266E6B63-3BA5-40A2-8ECF-BDF5D042E1F0}</ProjectGuid>
-    <RootNamespace>Konga</RootNamespace>
+    <ProjectGuid>{E300048D-66E2-44A6-BFD5-E15310E2A4CD}</ProjectGuid>
+    <RootNamespace>PointsInStuff</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -119,17 +119,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="dynamic_arr.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Student.cpp" />
-    <ClCompile Include="UI.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="dynamic_arr.h" />
-    <ClInclude Include="ptr_keeper.hpp" />
-    <ClInclude Include="doubly_linked_list.hpp" />
-    <ClInclude Include="Student.h" />
-    <ClInclude Include="UI.h" />
+    <Text Include="points.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

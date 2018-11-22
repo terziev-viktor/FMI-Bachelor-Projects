@@ -1,11 +1,9 @@
 #pragma once
 #include "ptr_keeper.hpp"
-#include "doubly_linked_list.hpp"
-#include "Student.h"
+#include "dynamic_arr.h"
 
 namespace konga_commands
 {
-
 	class command
 	{
 	private:
@@ -14,7 +12,7 @@ namespace konga_commands
 		command(const string & trigger);
 		const string & get_trigger() const;
 		void set_trigger(const string & trigger);
-		virtual string execute(ptr_keeper<doubly_linked_list<Student>> &, bool &) const = 0;
+		virtual string execute(dynamic_arr &, bool &) const = 0;
 	};
 
 	class print : public command
@@ -23,7 +21,7 @@ namespace konga_commands
 		print() :command("print") {}
 
 		// Inherited via command
-		virtual string execute(ptr_keeper<doubly_linked_list<Student>>&, bool&) const override;
+		virtual string execute(dynamic_arr&, bool&) const override;
 	};
 
 	class append : public command
@@ -32,7 +30,7 @@ namespace konga_commands
 		append() :command("append") {}
 
 		// Inherited via command
-		virtual string execute(ptr_keeper<doubly_linked_list<Student>>&, bool&) const override;
+		virtual string execute(dynamic_arr&, bool&) const override;
 	};
 
 	class remove_last : public command
@@ -41,7 +39,7 @@ namespace konga_commands
 		remove_last() :command("removeLast") {}
 
 		// Inherited via command
-		virtual string execute(ptr_keeper<doubly_linked_list<Student>>&, bool&) const override;
+		virtual string execute(dynamic_arr&, bool&) const override;
 	};
 
 	class remove_first : public command
@@ -50,7 +48,7 @@ namespace konga_commands
 		remove_first() :command("removeFirst") {}
 
 		// Inherited via command
-		virtual string execute(ptr_keeper<doubly_linked_list<Student>>&, bool&) const override;
+		virtual string execute(dynamic_arr&, bool&) const override;
 	};
 
 	class quit : public command
@@ -59,7 +57,7 @@ namespace konga_commands
 		quit() :command("quit") {}
 
 		// Inherited via command
-		virtual string execute(ptr_keeper<doubly_linked_list<Student>>&, bool&) const override;
+		virtual string execute(dynamic_arr&, bool&) const override;
 	};
 
 	class remove : public command
@@ -68,7 +66,7 @@ namespace konga_commands
 		remove() :command("remove") {}
 
 		// Inherited via command
-		virtual string execute(ptr_keeper<doubly_linked_list<Student>>&, bool &) const override;
+		virtual string execute(dynamic_arr&, bool &) const override;
 	};
 
 	class merge : public command
@@ -77,16 +75,19 @@ namespace konga_commands
 		merge() : command("merge") {}
 
 		// Inherited via command
-		virtual string execute(ptr_keeper<doubly_linked_list<Student>>&, bool &) const override;
+		virtual string execute(dynamic_arr&, bool &) const override;
 	};
 }
-//	User interface for working with kongas. Manages konga queues and command execution
+// User interface for working with kongas. Manages konga queues and command execution
+// The commands are a hierarchy so Im keeping pointers to different commands using a special data structure for keeping pointers
+// Kongas are small objects that are made cheap to swap using a method called swap_with()
+
 class UI
 {
 private:
 	bool is_running;
 	ptr_keeper<const konga_commands::command> commands;
-	ptr_keeper<doubly_linked_list<Student>> kongas;
+	dynamic_arr kongas;
 public:
 	UI();
 	~UI();

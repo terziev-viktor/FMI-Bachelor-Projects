@@ -119,13 +119,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Graham.cpp" />
-    <ClCompile Include="Triangle.cpp" />
+    <ClInclude Include="cool_stack.hpp" />
+    <ClInclude Include="STDFunctions.h" />
+    <ClInclude Include="vecta.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cool_stack.hpp" />
-    <ClInclude Include="Triangle.h" />
-    <ClInclude Include="vecta.h" />
+    <Text Include="points.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

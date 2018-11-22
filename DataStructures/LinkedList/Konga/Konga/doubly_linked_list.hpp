@@ -1,4 +1,7 @@
 #pragma once
+#include "Student.h"
+
+// No copy c-tor and operator= because Im not using them. Im using only swap_with() in the dynamic array of kongas
 template<class T>
 class doubly_linked_list
 {
@@ -32,6 +35,7 @@ private:
 
 	node * first;
 	node * last;
+	size_t count;
 
 	node * create_node(const T & data, node * next)
 	{
@@ -62,26 +66,21 @@ private:
 		return i;
 	}
 
-	node * find_node(bool(*comparison)(const T & n))
+	node * find_node(bool(*comparison)(const T & n), size_t & out_at)
 	{
 		node * i = this->first;
+		size_t c = 0;
 		while (!comparison(i->data))
 		{
 			i = i->next;
+			++c;
 			if (i == nullptr)
 			{
 				return nullptr;
 			}
 		}
+		out_at = c;
 		return i;
-	}
-
-	void copy_from(const doubly_linked_list<T> & other)
-	{
-		for (iterator it = other.begin(); !it.is_done(); ++it)
-		{
-			this->push_back(*it);
-		}
 	}
 
 public:
@@ -148,25 +147,9 @@ public:
 	};
 
 	doubly_linked_list()
-		:first(nullptr),last(nullptr)
+		:first(nullptr), last(nullptr)
 	{
 
-	}
-
-	doubly_linked_list(const doubly_linked_list & other)
-	{
-		this->copy_from(other);
-	}
-
-	doubly_linked_list<T> & operator=(const doubly_linked_list<T> & other)
-	{
-		if (this->first)
-		{
-			delete this->first;
-		}
-		this->first = nullptr;
-		this->last = nullptr;
-		this->copy_from(other);
 	}
 
 	~doubly_linked_list()
@@ -175,6 +158,19 @@ public:
 		{
 			delete this->first;
 		}
+	}
+
+	void swap_with(doubly_linked_list<T> & other)
+	{
+		node * tmp_first = this->first;
+		node * tmp_last = this->last;
+		size_t tmp_count = this->count;
+		this->first = other.first;
+		this->last = other.last;
+		this->count = other.count;
+		other.first = tmp_first;
+		other.last = tmp_last;
+		other.count = tmp_count;
 	}
 
 	bool empty() const
@@ -191,10 +187,10 @@ public:
 	{
 		return rev_iterator(this->last);
 	}
-	
+
 	const T & get_last() const { return this->last->data; }
 
-	T get_last() { return this->last->data;	}
+	T get_last() { return this->last->data; }
 
 	const T & get_first() const { return this->first->data; }
 
@@ -217,73 +213,59 @@ public:
 		this->last = other.last;
 		other.first = nullptr;
 		other.last = nullptr;
+		this->count += other.count;
+		other.count = 0;
 		return *this;
 	}
 
-	// cuts this list from position <at> and returns a pointer to a new list storing the remaining elements
-	doubly_linked_list<T> * cut(size_t at)
+	// cuts this list from position <at> and sets new first and last pointers of <out> object
+	void cut(size_t at, doubly_linked_list<T> & out)
 	{
-		doubly_linked_list<T> * out = new (std::nothrow) doubly_linked_list<T>();
-
-		while (!out)
-		{
-			out = new (std::nothrow) doubly_linked_list<T>();
-		}
-
 		if (at == 0)
 		{
-			out->first = this->first;
-			out->last = this->last;
-			this->first = nullptr;
-			this->last = nullptr;
-			return out;
+			out.swap_with(*this);
+			return;
 		}
 		node * this_new_last = this->get_node_at(at - 1);
 		node * other_new_first = this_new_last->next;
-		
+
 		this_new_last->next = nullptr;
 		other_new_first->prev = nullptr;
 
-		out->first = other_new_first;
-		out->last = this->last;
+		out.first = other_new_first;
+		out.last = this->last;
 
 		this->last = this_new_last;
-		return out;
+		out.count = this->count - at;
+		this->count = at;
 	}
 
-	doubly_linked_list<T> * cut(bool(*comparison)(const T &))
+	void cut(bool(*comparison)(const T &), doubly_linked_list<T> & out)
 	{
-		node * n = this->find_node(comparison);
+		size_t at;
+		node * n = this->find_node(comparison, at);
 		if (n == nullptr)
 		{
 			throw std::exception("Could not find element using comparison function");
 		}
-		doubly_linked_list<T> * out = new(std::nothrow) doubly_linked_list<T>();
-		while (!out)
-		{
-			out = new(std::nothrow) doubly_linked_list<T>();
-		}
-
+		
 		if (n->prev == nullptr)
 		{
-			out->first = this->first;
-			out->last = this->last;
-			this->last = nullptr;
-			this->first = nullptr;
-			return out;
+			out.swap_with(*this);
+			return;
 		}
 		if (n->next == nullptr)
 		{
 			return out;
 		}
-		out->first = n;
-		out->last = this->last;
+		out.first = n;
+		out.last = this->last;
 		this->last = n->prev;
 
 		this->last->next = nullptr;
-		out->first->prev = nullptr;
-
-		return out;
+		out.first->prev = nullptr;
+		out.count = this->count - at;
+		this->count = at;
 	}
 
 	doubly_linked_list<T> & push_back(const T & value)
@@ -300,6 +282,7 @@ public:
 			this->first = this->create_node(value, nullptr);
 			this->last = this->first;
 		}
+		++this->count;
 		return *this;
 	}
 
@@ -316,6 +299,7 @@ public:
 			this->first = this->create_node(value, nullptr);
 			this->last = this->first;
 		}
+		++this->count;
 		return *this;
 	}
 
@@ -323,10 +307,11 @@ public:
 	{
 		node * tmp = this->first;
 		this->first = this->first->next;
-		if(this->first)
+		if (this->first)
 			this->first->prev = nullptr;
 		tmp->next = nullptr;
 		delete tmp;
+		--this->count;
 		return *this;
 	}
 
@@ -336,6 +321,9 @@ public:
 		this->last = this->last->prev;
 		delete tmp;
 		this->last->next = nullptr;
+		--this->count;
 		return *this;
 	}
 };
+
+typedef doubly_linked_list<Student> Konga;

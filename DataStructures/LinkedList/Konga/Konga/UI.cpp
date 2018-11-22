@@ -5,20 +5,22 @@ UI::UI()
 {
 	// Keeping one konga queue at first
 	// User can add more
-	doubly_linked_list<Student>	* konga = new doubly_linked_list<Student>();
-	konga->push_back(Student("Integral4o", UNI::FMI));
-	this->kongas.keep(konga);
+	Konga konga;
+	konga.push_back(Student("Integral4o", UNI::FMI));
+	this->kongas.push_back(konga);
 }
 
 UI::~UI()
 {
 	this->commands.delete_elements();
-	this->kongas.delete_elements();
 }
 
 void UI::add_command(const command * c)
 {
-	this->commands.keep(c);
+	if (c != nullptr)
+	{
+		this->commands.keep(c);
+	}
 }
 
 void UI::execute_command(const string & c)
@@ -37,6 +39,7 @@ void UI::execute_command(const string & c)
 			catch (const std::exception& e)
 			{
 				std::cout << e.what() << std::endl;
+				command_found = true;
 			}
 		}
 	}
@@ -84,7 +87,7 @@ void command::set_trigger(const string & trigger)
 	this->trigger = trigger;
 }
 
-string append::execute(ptr_keeper<doubly_linked_list<Student>>& s, bool&) const
+string append::execute(dynamic_arr& s, bool&) const
 {
 	string name, uni_str;
 	int line;
@@ -94,19 +97,19 @@ string append::execute(ptr_keeper<doubly_linked_list<Student>>& s, bool&) const
 	{
 		throw std::exception("Invalid konga index");
 	}
-	doubly_linked_list<Student> * konga = s.give(line);
-	const Student & last_st = konga->get_last();
+	Konga & konga = s[line];
+	const Student & last_st = konga.get_last();
 	if (uni == UNI::FMI && (last_st.get_UNI() == UNI::FMI || last_st.get_UNI() == UNI::TU))
 	{
-		konga->push_back(Student(name, uni));
+		konga.push_back(Student(name, uni));
 	}
 	else if (uni == UNI::TU && (last_st.get_UNI() == UNI::TU || last_st.get_UNI() == UNI::UNWE))
 	{
-		konga->push_back(Student(name, uni));
+		konga.push_back(Student(name, uni));
 	}
 	else if (uni == UNI::UNWE && (last_st.get_UNI() == UNI::UNWE || last_st.get_UNI() == UNI::FMI))
 	{
-		konga->push_back(Student(name, uni));
+		konga.push_back(Student(name, uni));
 	}
 	else
 	{
@@ -115,49 +118,52 @@ string append::execute(ptr_keeper<doubly_linked_list<Student>>& s, bool&) const
 	return "Added student to konga";
 }
 
-string remove_last::execute(ptr_keeper<doubly_linked_list<Student>>& s, bool&) const
+string remove_last::execute(dynamic_arr& s, bool&) const
 {
 	int line;
 	std::cin >> line;
-	doubly_linked_list<Student> * konga = s.give(line);
-	konga->remove_back();
-	if (konga->empty())
+	Konga & konga = s[line];
+	konga.remove_back();
+	if (konga.empty())
 	{
-		s.give_up(line);
-		delete konga;
+		s.remove(line);
 	}
 	return "removed last student from konga";
 }
 
-string remove_first::execute(ptr_keeper<doubly_linked_list<Student>>& s, bool&) const
+string remove_first::execute(dynamic_arr& s, bool&) const
 {
 	int line;
 	std::cin >> line;
-	doubly_linked_list<Student> * konga = s.give(line);
-	konga->remove_front();
-	if (konga->empty())
+	Konga & konga = s[line];
+	konga.remove_front();
+	if (konga.empty())
 	{
-		s.give_up(line);
-		delete konga;
+		s.remove(line);
 	}
 	return "removed first student from konga";
 }
 
-string quit::execute(ptr_keeper<doubly_linked_list<Student>>&, bool& r) const
+string quit::execute(dynamic_arr&, bool& r) const
 {
 	r = false;
 	return "Exiting konga manager";
 }
 
-string print::execute(ptr_keeper<doubly_linked_list<Student>>& s, bool &) const
+string print::execute(dynamic_arr& s, bool &) const
 {
 	for (size_t i = 0; i < s.get_count(); ++i)
 	{
 		std::cout << "line " << i << ": ";
-		doubly_linked_list<Student> * konga = s.give(i);
-		for (doubly_linked_list<Student>::iterator it = konga->begin(); !it.is_done(); ++it)
+		Konga & konga = s[i];
+		for (doubly_linked_list<Student>::iterator it = konga.begin(); !it.is_done();)
 		{
-			std::cout << *it << " <- ";
+			std::cout << *it;
+			++it;
+			if (!it.is_done())
+			{
+				std::cout << " <- ";
+			}
 		}
 		std::cout << std::endl;
 	}
@@ -165,15 +171,15 @@ string print::execute(ptr_keeper<doubly_linked_list<Student>>& s, bool &) const
 	return "printed all kongas";
 }
 
-string remove::execute(ptr_keeper<doubly_linked_list<Student>>& s, bool &) const
+string remove::execute(dynamic_arr& s, bool &) const
 {
 	string name;
 	int line;
 	std::cin >> name >> line;
-	doubly_linked_list<Student> * konga = s.give(line);
+	Konga & konga = s[line];
 	size_t at = 0;
 	bool found = false;
-	for (doubly_linked_list<Student>::iterator i = konga->begin(); !i.is_done(); ++i)
+	for (doubly_linked_list<Student>::iterator i = konga.begin(); !i.is_done(); ++i)
 	{
 		if ((*i).get_name() == name)
 		{
@@ -186,40 +192,31 @@ string remove::execute(ptr_keeper<doubly_linked_list<Student>>& s, bool &) const
 	{
 		throw std::exception("Student not found");
 	}
-	doubly_linked_list<Student> * cut = konga->cut(at);
-	if (!cut->empty())
+	Konga cut;
+	konga.cut(at, cut);
+	if (!cut.empty())
 	{
-		cut->remove_front();
+		cut.remove_front();
 
-		if (!cut->empty())
+		if (!cut.empty())
 		{
-			s.keep(cut);
-		}
-		else
-		{
-			delete cut;
+			s.push_back(cut);
 		}
 	}
-	else
+	if (konga.empty())
 	{
-		delete cut;
-	}
-	if (konga->empty())
-	{
-		delete konga;
-		s.give_up(line);
+		s.remove(line);
 	}
 	return "removed student from konga";
 }
 
-string konga_commands::merge::execute(ptr_keeper<doubly_linked_list<Student>>& s, bool &) const
+string konga_commands::merge::execute(dynamic_arr& s, bool &) const
 {
 	int line1, line2;
 	std::cin >> line1 >> line2;
-	doubly_linked_list<Student> * konga1 = s.give(line1);
-	doubly_linked_list<Student> * konga2 = s.give(line2);
-	konga1->append(*konga2);
-	s.give_up(line2);
-	delete konga2;
+	Konga & konga1 = s[line1];
+	Konga & konga2 = s[line2];
+	konga1.append(konga2);
+	s.remove(line2);
 	return "Merged two kongas";
 }
