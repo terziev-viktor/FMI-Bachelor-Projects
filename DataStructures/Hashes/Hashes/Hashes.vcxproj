@@ -20,8 +20,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{60C0D54E-F2DC-46F4-BF5B-A1D36311276C}</ProjectGuid>
-    <RootNamespace>Hash</RootNamespace>
+    <ProjectGuid>{225D2EC9-D9BF-4F4C-BBE7-8089C355E6B4}</ProjectGuid>
+    <RootNamespace>Hashes</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -119,10 +119,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <ClInclude Include="HashTable.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Hash.hpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
