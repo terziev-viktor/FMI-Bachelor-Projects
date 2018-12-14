@@ -1,101 +1,61 @@
 #pragma once
-#include <functional>
-#include <string>
+
+#include "LinkedList.hpp"
 
 // A Hash Table with user-defined HasingFunction that gets a Key and returns a hash of type size_t
-template<typename Key, typename Value, size_t (*HashingFunction)(const Key &)>
+template<typename Key, typename Value, size_t(*HashingFunction)(const Key &)>
 class HashTable
 {
-protected:
-	class KeyValueListNode
+public:
+	class KeyValuePair
 	{
-	public:
+	protected:
 		Key key;
 		Value value;
-		KeyValueListNode * next = nullptr;
-		bool free = true;
+	public:
+		const Value & GetValue() const { return this->value; }
 
-		KeyValueListNode()
-			:next(nullptr), free(true)
+		Value & GetValue() { return this->value; }
+
+		const Key & GetKey() const { return this->key; }
+
+		void SetValue(const Value & v)
 		{
-
+			this->value = v;
 		}
 
-		~KeyValueListNode()
-		{
-			if (next)
-			{
-				delete next;
-			}
-		}
+		KeyValuePair()
+		{	}
 
+		KeyValuePair(const Key & k, const Value & v)
+		{
+			this->key = k;
+			this->SetValue(v);
+		}
 	};
+protected:
+	bool expandWhenFull; // the user says if he wants to expand the table when its full
 
-	KeyValueListNode * data;
+	size_t count; // count of elements in the table, including duplicate hashes
 
-	bool expandWhenFull;
+	size_t space; // count of used lists in the table
 
-	KeyValueListNode * Find(const Key & key)
-	{
-		size_t hsh = HashingFunction(key) % this->size;
-		if (this->data[hsh].key == key)
-		{
-			return &this->data[hsh];
-		}
-		else
-		{
-			KeyValueListNode * c = this->data[hsh].next;
-
-			do
-			{
-				if (c->key == key)
-				{
-					return c;
-				}
-				c = c->next;
-			} while (!c);
-		}
-		return nullptr;
-	}
-
-private:
-	size_t count;
-
-	size_t space;
-
-	size_t size;
+	size_t size; // size of the table
 
 	void expand()
 	{
 		size_t n_size = this->size * 2;
 		size_t n_space = n_size;
-		KeyValueListNode * n_data = new KeyValueListNode[n_size];
-		// Rehash all key-value pairs
-		for (HashTable::Iterator it = this->Begin(); !it->Done(); ++it)
+		LinkedList<KeyValuePair> * n_data = new LinkedList<KeyValuePair>[n_size];
+		for (Iterator it = this->Begin(); !it.Done(); ++it)
 		{
-			size_t n_hsh = HashingFunction((*it)->key) % n_size;
-			if (n_data[n_hsh].free)
+			size_t hsh = HashingFunction((*it)->GetKey()) % n_size;
+			if (n_data[hsh].Empty())
 			{
-				n_data[n_hsh].key = (*it)->key;
-				n_data[n_hsh].value = (*it)->value;
-				n_data[n_hsh].free = false;
 				--n_space;
 			}
-			else
-			{
-				KeyValueListNode * c = n_data[n_hsh].next;
-				KeyValueListNode * c_prev = &n_data[n_hsh];
 
-				while (c != nullptr)
-				{
-					c_prev = c;
-					c = c->next;
-				}
-				c = new KeyValueListNode();
-				c->value = (*it)->value;
-				c->key = (*it)->key;
-				c_prev->next = c;
-			}
+			n_data[hsh].AddFront(KeyValuePair((*it)->GetKey(), (*it)->GetValue()));
 		}
 		this->size = n_size;
 		this->space = n_space;
@@ -103,39 +63,39 @@ private:
 		this->data = n_data;
 	}
 
-public:
+	
 
+	LinkedList<KeyValuePair> * data;
+
+public:
+	
 	HashTable(const size_t INIT_SIZE = 100, bool expandWhenFull = false);
 
-	~HashTable()
-	{
-		delete[] this->data;
-	}
+	~HashTable();
 
 	class Iterator
 	{
 	private:
-		KeyValueListNode * c;
-		KeyValueListNode * data;
+		typename LinkedList<KeyValuePair>::Iterator it;
+		LinkedList<KeyValuePair> * data;
 		size_t size;
 	public:
 		Iterator()
-			:c(nullptr),data(nullptr),size(0)
+			:data(nullptr), size(0)
 		{
 
 		}
-		Iterator(KeyValueListNode * begining, size_t size)
+
+		Iterator(LinkedList<KeyValuePair> * begining, size_t size)
 		{
 			this->data = begining;
-			size_t i = 0;
-			// go to the first hashed key-value pair
-			while (this->data->free)
+			this->size = size;	
+			while (this->data->Empty())
 			{
-				--size;
 				++data;
+				--this->size;
 			}
-			this->size = size;
-			this->c = data;
+			it = this->data->Begin();
 		}
 
 		bool Done() const
@@ -145,19 +105,17 @@ public:
 
 		Iterator & operator++()
 		{
-			if (c->next)
+			++it;
+			if (size && it.Done())
 			{
-				c = c->next;
-			}
-			else if(this->size)
-			{
-				++data;
-				while (size && data->free)
+				++this->data;
+				--this->size;
+				while (size && this->data->Empty())
 				{
 					++data;
 					--size;
 				}
-				c = data;
+				this->it = this->data->Begin();
 			}
 			return *this;
 		}
@@ -166,26 +124,30 @@ public:
 		{
 			Iterator old(*this);
 
-			if (c->next)
-			{
-				c = c->next;
-			}
-			else if (this->size)
+			++it;
+			if (size && it.Done())
 			{
 				++data;
-				while (size && data->free)
+				--size;
+				while (size && this->data->Empty())
 				{
 					++data;
 					--size;
 				}
-				c = data;
+				this->it = this->data->Begin();
 			}
+
 			return old;
 		}
 
-		const KeyValueListNode * operator*() const
+		const KeyValuePair * operator*() const
 		{
-			return c;
+			return &(*it);
+		}
+
+		KeyValuePair * operator*()
+		{
+			return &(*it);
 		}
 
 		Iterator * operator->()
@@ -200,6 +162,7 @@ public:
 	}
 
 	// Density of the values in the table
+	// The closer to 1.0 ther better
 	double Density() const
 	{
 		return (double)this->Count() / this->Size();
@@ -235,11 +198,31 @@ public:
 	// Speed: pretty much O(1)
 	bool Insert(const Key & key, const Value & value);
 
-	bool Delete(const Key & key);
+	// Deletes the value of given key
+	void Delete(const Key & key);
 
 	// Finds and returns a pointer to the value at given key
 	// Speed: pretty much O(1)
 	Value * Search(const Key & key);
+
+	// Performs a Search, Added for readability
+	Value * operator[](const Key & key);
+
+	KeyValuePair * GetKeyValuePairByKey(const Key & key)
+	{
+		size_t hsh = HashingFunction(key) % this->size;
+		if (!this->data[hsh].Empty())
+		{
+			for (typename LinkedList<KeyValuePair>::Iterator it = this->data[hsh].Begin(); !it.Done(); ++it)
+			{
+				if ((*it).GetKey() == key)
+				{
+					return &(*it);
+				}
+			}
+		}
+		return nullptr;
+	}
 
 	// Doubles the capacity of the table. Use with cotion!
 	// Speed: A very slow O(n) because of deletions and constructions of objects
@@ -259,7 +242,13 @@ inline HashTable<Key, Value, HashingFunction>::HashTable(const size_t INIT_SIZE,
 	this->size = INIT_SIZE;
 	this->space = this->size;
 	this->expandWhenFull = expandWhenFull;
-	this->data = new KeyValueListNode[this->size];
+	this->data = new LinkedList<KeyValuePair>[this->size];
+}
+
+template<typename Key, typename Value, size_t(*HashingFunction)(const Key &)>
+inline HashTable<Key, Value, HashingFunction>::~HashTable()
+{
+	delete[] this->data;
 }
 
 template<typename Key, typename Value, size_t(*HashingFunction)(const Key &)>
@@ -270,96 +259,55 @@ inline bool HashTable<Key, Value, HashingFunction>::Insert(const Key & key, cons
 		this->expand();
 	}
 	size_t hsh = HashingFunction(key) % this->size;
-	if (this->data[hsh].free)
+	if (this->data[hsh].Empty())
 	{
-		this->data[hsh].value = value;
-		this->data[hsh].key = key;
-		this->data[hsh].free = false;
 		--this->space;
-		++this->count;
-		return true;
 	}
-	else
-	{
-		KeyValueListNode * c = this->data[hsh].next;
-		KeyValueListNode * c_prev = &this->data[hsh];
-		
-		while (c != nullptr)
-		{
-			c_prev = c;
-			c = c->next;
-		}
-		c = new KeyValueListNode();
-		c->value = value;
-		c->key = key;
-		c_prev->next = c;
-		++this->count;
-		return true;
-	}
-	return false;
+
+	this->data[hsh].AddFront(KeyValuePair(key, value));
+	++this->count;
+	return true;
 }
 
 template<typename Key, typename Value, size_t(*HashingFunction)(const Key &)>
-inline bool HashTable<Key, Value, HashingFunction>::Delete(const Key & key)
+inline void HashTable<Key, Value, HashingFunction>::Delete(const Key & key)
 {
 	size_t h = HashingFunction(key) % this->size;
-	if (this->data[h].key == key)
+	if (!this->data[h].Empty())
 	{
-		if (this->data[h].next == nullptr)
+		for (typename LinkedList<KeyValuePair>::Iterator it = this->data[h].Begin(); !it.Done(); ++it)
 		{
-			this->data[h].free = true;
-			++space;
-			--count;
-			return true;
-		}
-		else
-		{
-			this->data[h].key = this->data[h].next->key;
-			this->data[h].value = this->data[h].next->value;
-			KeyValueListNode * n = this->data[h].next;
-			this->data[h].next = this->data[h].next->next;
-			n->next = nullptr;
-			delete n;
-			--count;
-			return true;
+			if ((*it).GetKey() == key)
+			{
+				this->data[h].Remove(it);
+				return;
+			}
 		}
 	}
-	else
-	{
-		KeyValueListNode * c = this->data[h].next;
-		while (c && c->key != key) c = c->next;
-		if (!c) // no such key
-		{
-			return false;
-		}
-		if (!c->next)
-		{
-			// TODO
-		}
-		else
-		{
-			c->key = c->next->key;
-			c->value = c->next->value;
-			KeyValueListNode * n = c->next;
-			c->next = c->next->next;
-			n->next = nullptr;
-			delete n;
-			--count;
-			return true;
-		}
-		
-	}
+	throw "No such key exists in the table";
 }
 
 template<typename Key, typename Value, size_t(*HashingFunction)(const Key &)>
 inline Value * HashTable<Key, Value, HashingFunction>::Search(const Key & key)
 {
-	KeyValueListNode * kvln = this->Find(key);
-	if (kvln)
+	size_t hsh = HashingFunction(key) % this->size;
+	if (!this->data[hsh].Empty())
 	{
-		return &kvln->value;
+		for (typename LinkedList<KeyValuePair>::Iterator it = this->data[hsh].Begin(); !it.Done(); ++it)
+		{
+			if ((*it).GetKey() == key)
+			{
+				return &(*it).GetValue();
+			}
+		}
 	}
 	return nullptr;
+}
+
+template<typename Key, typename Value, size_t(*HashingFunction)(const Key &)>
+inline Value * HashTable<Key, Value, HashingFunction>::operator[](const Key & key)
+{
+	return this->Search(key);
 }
 
 template<typename Key, typename Value, size_t(*HashingFunction)(const Key &)>
@@ -367,6 +315,6 @@ inline void HashTable<Key, Value, HashingFunction>::Print(std::ostream & out) co
 {
 	for (HashTable::Iterator it = this->Begin(); !it->Done(); ++it)
 	{
-		out << (*it)->key << ' ' << (*it)->value << '\n';
+		out << "Key: " << (*it)->GetKey() << ", Value: " << (*it)->GetValue() << '\n';
 	}
 }
