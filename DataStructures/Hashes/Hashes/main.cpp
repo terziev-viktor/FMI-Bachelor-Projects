@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <time.h>
 
 #include "HashTable.hpp"
 #include "Person.h"
@@ -13,7 +12,6 @@ using std::endl;
 
 typedef HashTable<string, Person*, GoodHashingFunction> HashPeople;
 
-// I'm a lazy man, no command hierarchy this time
 const size_t COMMANDS_COUNT = 8;
 string COMMANDS[COMMANDS_COUNT] = { "RELEASE", "GRAB", "INFO", "ADD", "REMOVE", "SWAP", "PRINT", "EXIT" };
 
@@ -68,7 +66,6 @@ void PrintXopo(const Person * first, const Person * p)
 
 int main()
 {
-	srand(time(NULL));
 	std::vector<Person*> people;
 	HashPeople hash_people;
 	if (!InpPeople("file.txt", people))
@@ -92,9 +89,7 @@ int main()
 	{
 		hash_people.Insert(people[i]->GetNickname(), people[i]);
 	}
-	hash_people.Expand();
-	PrintPeople(hash_people);
-
+	
 	// Executing commands
 	string inp;
 	bool running = true;

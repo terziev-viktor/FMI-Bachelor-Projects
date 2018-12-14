@@ -17,8 +17,3 @@ size_t BadHashingFunction(const std::string & a)
 {
 	return 30;
 }
-
-size_t RandomHashingFunction(const std::string & a)
-{
-	return rand();
-}
