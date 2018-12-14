@@ -92,6 +92,8 @@ int main()
 	{
 		hash_people.Insert(people[i]->GetNickname(), people[i]);
 	}
+	hash_people.Expand();
+	PrintPeople(hash_people);
 
 	// Executing commands
 	string inp;

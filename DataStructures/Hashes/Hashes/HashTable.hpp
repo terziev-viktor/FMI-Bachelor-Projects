@@ -63,8 +63,6 @@ protected:
 		this->data = n_data;
 	}
 
-	
-
 	LinkedList<KeyValuePair> * data;
 
 public:
@@ -213,6 +211,10 @@ public:
 		size_t hsh = HashingFunction(key) % this->size;
 		if (!this->data[hsh].Empty())
 		{
+			if (this->data[hsh].Size() == 1)
+			{
+				return &this->data[hsh].GetFirst();
+			}
 			for (typename LinkedList<KeyValuePair>::Iterator it = this->data[hsh].Begin(); !it.Done(); ++it)
 			{
 				if ((*it).GetKey() == key)
@@ -280,7 +282,7 @@ inline void HashTable<Key, Value, HashingFunction>::Delete(const Key & key)
 			if ((*it).GetKey() == key)
 			{
 				this->data[h].Remove(it);
-				return;
+				--count;
 			}
 		}
 	}
@@ -290,18 +292,7 @@ inline void HashTable<Key, Value, HashingFunction>::Delete(const Key & key)
 template<typename Key, typename Value, size_t(*HashingFunction)(const Key &)>
 inline Value * HashTable<Key, Value, HashingFunction>::Search(const Key & key)
 {
-	size_t hsh = HashingFunction(key) % this->size;
-	if (!this->data[hsh].Empty())
-	{
-		for (typename LinkedList<KeyValuePair>::Iterator it = this->data[hsh].Begin(); !it.Done(); ++it)
-		{
-			if ((*it).GetKey() == key)
-			{
-				return &(*it).GetValue();
-			}
-		}
-	}
-	return nullptr;
+	return &this->GetKeyValuePairByKey(key)->GetValue();
 }
 
 template<typename Key, typename Value, size_t(*HashingFunction)(const Key &)>
