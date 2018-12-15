@@ -1,5 +1,7 @@
 #include "Person.h"
 
+
+
 Person::Person()
 	:left(nullptr), right(nullptr), grabbed_left(false), grabbed_right(false)
 {

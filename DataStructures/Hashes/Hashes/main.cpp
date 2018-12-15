@@ -286,8 +286,10 @@ int main()
 		}
 		case 6: // PRINT
 		{
-			PrintXopo(people[0], people[0]);
-			cout << endl;
+			for (HashPeople::Iterator it = hash_people.Begin(); !it.Done(); ++it)
+			{
+				cout << (*it)->GetValue()->GetNickname() << endl;
+			}
 			break;
 		}
 		case 7: // EXIT

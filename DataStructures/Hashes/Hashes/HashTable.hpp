@@ -277,12 +277,18 @@ inline void HashTable<Key, Value, HashingFunction>::Delete(const Key & key)
 	size_t h = HashingFunction(key) % this->size;
 	if (!this->data[h].Empty())
 	{
+		if (this->data[h].Size() == 1)
+		{
+			this->data[h].RemoveFirst();
+			return;
+		}
 		for (typename LinkedList<KeyValuePair>::Iterator it = this->data[h].Begin(); !it.Done(); ++it)
 		{
 			if ((*it).GetKey() == key)
 			{
 				this->data[h].Remove(it);
 				--count;
+				return;
 			}
 		}
 	}
@@ -306,6 +312,6 @@ inline void HashTable<Key, Value, HashingFunction>::Print(std::ostream & out) co
 {
 	for (HashTable::Iterator it = this->Begin(); !it->Done(); ++it)
 	{
-		out << "Key: " << (*it)->GetKey() << ", Value: " << (*it)->GetValue() << '\n';
+		out << (*it)->GetValue() << '\n';
 	}
 }
