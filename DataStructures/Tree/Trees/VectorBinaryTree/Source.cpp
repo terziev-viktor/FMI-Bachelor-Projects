@@ -1,15 +1,11 @@
 #include <iostream>
 #include "VectBinTree.hpp"
 using namespace std;
-class Abcde
-{
-public:
-	int a;
-	int b;
-};
+
+
 int main()
 {
-	Abcde a;
+	VectBinTree<int, std::less<int>> tree;
 
 	return 0;
 }

@@ -12,6 +12,7 @@ private:
 	std::string nickname;
 public:
 	Person();
+
 	Person(const string &);
 
 	const string & GetNickname() const

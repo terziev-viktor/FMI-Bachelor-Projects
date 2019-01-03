@@ -32,7 +32,9 @@ public:
 		}
 	}
 
-	LinkedList<T> & operator=(const LinkedList<T> & other) = delete; // use .SwapWith() instead
+	LinkedList(const LinkedList<T> & other);
+
+	LinkedList<T> & operator=(const LinkedList<T> & other);
 
 	class Iterator
 	{
@@ -226,3 +228,29 @@ protected:
 	Node * last;
 	size_t size;
 };
+
+template<typename T>
+inline LinkedList<T>::LinkedList(const LinkedList<T> & other)
+{
+	this->size = 0;
+	for (Iterator it = other.Begin(); !it.Done(); ++it)
+	{
+		this->AddBack(*it);
+	}
+}
+
+template<typename T>
+inline LinkedList<T>& LinkedList<T>::operator=(const LinkedList<T>& other)
+{
+	if (this->first)
+	{
+		delete this->first;
+		this->first = nullptr;
+		this->last = nullptr;
+	}
+	for (Iterator it = other.Begin(); !it.Done(); ++it)
+	{
+		this->AddBack(*it);
+	}
+	return *this;
+}

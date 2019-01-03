@@ -33,6 +33,7 @@ public:
 			this->SetValue(v);
 		}
 	};
+
 protected:
 	bool expandWhenFull; // the user says if he wants to expand the table when its full
 
@@ -65,11 +66,16 @@ protected:
 
 	LinkedList<KeyValuePair> * data;
 
+	void copyFrom(const HashTable<Key, Value, HashingFunction> & other);
 public:
 	
 	HashTable(const size_t INIT_SIZE = 100, bool expandWhenFull = false);
 
+	HashTable(const HashTable<Key, Value, HashingFunction> & other);
+
 	~HashTable();
+
+	HashTable<Key, Value, HashingFunction> & operator=(const HashTable<Key, Value, HashingFunction> & other);
 
 	class Iterator
 	{
@@ -239,6 +245,20 @@ public:
 };
 
 template<typename Key, typename Value, size_t(*HashingFunction)(const Key &)>
+inline void HashTable<Key, Value, HashingFunction>::copyFrom(const HashTable<Key, Value, HashingFunction> & other)
+{
+	this->size = other.size;
+	this->count = other.count;
+	this->space = other.space;
+	this->expandWhenFull = other.expandWhenFull;
+	this->data = new LinkedList<KeyValuePair>[this->size];
+	for (size_t i = 0; i < this->size; ++i)
+	{
+		this->data[i] = other.data[i];
+	}
+}
+
+template<typename Key, typename Value, size_t(*HashingFunction)(const Key &)>
 inline HashTable<Key, Value, HashingFunction>::HashTable(const size_t INIT_SIZE, bool expandWhenFull)
 {
 	this->size = INIT_SIZE;
@@ -248,9 +268,22 @@ inline HashTable<Key, Value, HashingFunction>::HashTable(const size_t INIT_SIZE,
 }
 
 template<typename Key, typename Value, size_t(*HashingFunction)(const Key &)>
+inline HashTable<Key, Value, HashingFunction>::HashTable(const HashTable<Key, Value, HashingFunction> & other)
+{
+	this->copyFrom(other);
+}
+
+template<typename Key, typename Value, size_t(*HashingFunction)(const Key &)>
 inline HashTable<Key, Value, HashingFunction>::~HashTable()
 {
 	delete[] this->data;
+}
+
+template<typename Key, typename Value, size_t(*HashingFunction)(const Key &)>
+inline HashTable<Key, Value, HashingFunction>& HashTable<Key, Value, HashingFunction>::operator=(const HashTable<Key, Value, HashingFunction> & other)
+{
+	this->copyFrom(other);
+	return *this;
 }
 
 template<typename Key, typename Value, size_t(*HashingFunction)(const Key &)>

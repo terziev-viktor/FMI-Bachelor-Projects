@@ -4,45 +4,44 @@
 using std::vector;
 
 template<typename T>
+struct TValue
+{
+	bool free;
+	T value;
+	TValue() :free(true) {}
+};
+
+template<typename T>
 class DataVect
 {
-private:
-	struct TValue
-	{
-		bool free;
-		T value;
-	};
-	TValue * data;
+public:
+	TValue<T> * data;
+
 	size_t size;
+
 	size_t current;
-	void expand(size_t to)
+
+	void Expand(size_t to)
 	{
 		if (data == nullptr)
 		{
-			this->data = new TValue[to + 1];
+			this->data = new TValue<T>[to + 1];
 			this->size = to + 1;
-			for (size_t i = 0; i < this->size; ++i)
-			{
-				this->data[i].free = true;
-			}
+			this->current = 0;
 		}
 		else
 		{
-			TValue * values = new TValue[to + 1];
+			TValue<T> * values = new TValue<T>[to + 1];
 			for (size_t i = 0; i < this->size; ++i)
 			{
 				values[i] = this->data[i];
-			}
-			for (size_t i = this->size; i < to + 1; ++i)
-			{
-				values[i].free = true;
 			}
 			this->size = to + 1;
 			delete[] this->data;
 			this->data = values;
 		}
 	}
-public:
+
 	DataVect()
 		:data(nullptr),size(0),current(0)
 	{
@@ -62,63 +61,13 @@ public:
 		return this->size;
 	}
 
-	T & operator[](size_t i)
+	TValue & operator[](size_t i)
 	{
 		if (i >= this->size)
 		{
 			this->expand(i);
 		}
 		return this->data[i];
-	}
-
-	const T & Root() const
-	{
-		if (this->size)
-		{
-			this->current = 0;
-			return this->data[0];
-		}
-		throw std::exception("No root in tree");
-	}
-
-	const T & Current() const
-	{
-		if (this->size)
-		{
-			size_t c = this->current;
-			this->current = 0;
-			return this->data[c];
-		}
-		throw std::exception("No root in tree");
-	}
-
-	const T & Get() const
-	{
-		if (this->size)
-		{
-			return this->data[this->current];
-		}
-		throw std::exception("No root in tree");
-	}
-
-	DataVect & Left()
-	{
-		return *this;
-	}
-
-	DataVect & Right()
-	{
-		return *this;
-	}
-
-	DataVect & Parent()
-	{
-		if (this->current == 0)
-		{
-			return *this;
-		}
-		this->current = (this->current - 1) / 2;
-		return *this;
 	}
 };
 
@@ -128,11 +77,55 @@ class VectBinTree
 {
 private:
 	DataVect<T> data;
+	Comparator compare;
 	size_t current;
+	TValue * Find() const
+	{
+		size_t c = 0;
+		while (this->data[c].value != value)
+		{
+			if (this->data[c].free)
+			{
+				return nullptr;
+			}
+			if (compare(value, this->data[c].value)
+			{
+				c = 2 * c + 1;
+			}
+			else
+			{
+				c = 2 * c + 2;
+			}
+			if (c >= this->data.Size())
+			{
+				return nullptr;
+			}
+		}
+		return &this->data[c];
+	}
 public:
 	VectBinTree();
+
 	bool Empty() const;
 
+	const T & Root() const
+	{
+		if (this->size)
+		{
+			return this->data[0].value;
+		}
+		throw std::exception("The tree is empty");
+	}
+
+	bool Contains(const T & value) const
+	{
+		return this->Find(value) != nullptr;
+	}
+
+	void Insert(const T & value)
+	{
+		
+	}
 };
 
 template<typename T, typename Comparator>
