@@ -23,5 +23,8 @@
     <ClInclude Include="VectorExtentions.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GameMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

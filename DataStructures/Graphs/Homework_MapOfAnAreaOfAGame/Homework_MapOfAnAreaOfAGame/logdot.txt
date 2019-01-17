@@ -1,0 +1,22 @@
+digraph {
+dock -> village [label=""];
+dock -> jungle [label=""];
+temple_1a -> temple_1b [label=""];
+village -> dock [label="iron key"];
+village -> basement [label=""];
+jungle -> temple_entrance [label=""];
+basement -> village [label=""];
+temple_entrance -> temple_1a [label="skull key"];
+temple_entrance -> temple_2 [label="serpent key"];
+desert -> oasis [label=""];
+temple_1a[label="temple_1a"color=red,style=filled];
+village[label="village"color=green,style=filled];
+dock[label="dock"color=green,style=filled];
+desert[label="desert [iron key]"color=red,style=filled];
+jungle[label="jungle"color=green,style=filled];
+basement[label="basement [iron key]"color=green,style=filled];
+temple_entrance[label="temple_entrance"color=green,style=filled];
+temple_2[label="temple_2 [skull key]"color=red,style=filled];
+oasis[label="oasis"color=red,style=filled];
+temple_1b[label="temple_1b [serpent key]"color=red,style=filled];
+}

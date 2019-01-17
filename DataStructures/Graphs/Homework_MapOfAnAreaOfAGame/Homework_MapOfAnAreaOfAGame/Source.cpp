@@ -1,43 +1,20 @@
+#include "GameMap.h"
 #include <iostream>
-#include <vector>
-#include <unordered_map>
-#include <string>
 #include <fstream>
 using namespace std;
 
-struct Area
+struct TraversalParams
 {
-	Area()
-		:visiting(false), visited(false) 
-	{}
+	AreaLinks * areaLinks;
 
-	Area(const string & name) 
-		:name(name),visiting(false),visited(false)
-	{}
+	Areas * areas;
 
-	string name;
+	string currentArea;
 
-	// the area is being visited during the traversal
-	bool visiting;
-
-	// the area has been visited during the traversal
-	bool visited;
-
-	vector<pair<string, bool>> keys; // (keyname, keyExists)
+	vector<string> * collectedKeys;
 };
 
-struct AreaLink
-{
-	string unlockedWithKey; // key needed to get through this link
-
-	Area * toArea;
-};
-
-typedef unordered_map<string, Area> Areas;
-
-typedef unordered_map<string, vector<AreaLink>> GameMap;
-
-bool inp(GameMap & gameMap, Areas & areas, const string & path)
+bool inp(AreaLinks & areaLinks, Areas & areas, const string & path)
 {
 	ifstream in(path);
 	if (!in)
@@ -52,6 +29,7 @@ bool inp(GameMap & gameMap, Areas & areas, const string & path)
 	size_t arrowIndex = 0;
 	size_t bracketIndex = 0;
 	const Areas::iterator & end = areas.end();
+	const AreaLinks::iterator & gend = areaLinks.end();
 
 	getline(in, str); // reading [zones]
 	bool readingZones = true;
@@ -98,13 +76,18 @@ bool inp(GameMap & gameMap, Areas & areas, const string & path)
 					});
 			}
 
+			if (areaLinks.find(areaTo) == gend)
+			{
+				areaLinks.insert({ areaTo, vector<AreaLink>() });
+			}
+
 			string unlockedWithKey = "";
 			if (bracketIndex < str.size())
 			{
 				unlockedWithKey = str.substr(bracketIndex + 1, str.size() - bracketIndex - 3);
 			}
 
-			gameMap[areaFrom].push_back(AreaLink() = {
+			areaLinks[areaFrom].push_back(AreaLink() = {
 				unlockedWithKey,
 				&areas[areaTo]
 				}); // add a link from areaFrom to areaTo with key unlockedWithKey
@@ -126,87 +109,122 @@ bool inp(GameMap & gameMap, Areas & areas, const string & path)
 	return true;
 }
 
-struct TraversalParams
-{
-	GameMap & gameMap;
-
-	Areas & areas;
-
-	Area & currentArea;
-
-	vector<AreaLink> & currentAreaLinks;
-
-	vector<string> & collectedKeys;
-};
-
 // DFS
 void innerTraverse(TraversalParams & params)
 {
-	params.currentArea.visiting = true;
+	Area & currentArea = params.areas->at(params.currentArea);
+
+	vector<AreaLink> & currentAreaLinks = params.areaLinks->at(params.currentArea);
+
+	currentArea.visiting = true;
+
 	// collecting keys
-	for (size_t i = 0; i < params.currentArea.keys.size(); ++i)
+	for (size_t i = 0; i < currentArea.keys.size(); ++i)
 	{
-		if (params.currentArea.keys[i].second)
+		if (currentArea.keys[i].second)
 		{
-			params.collectedKeys.push_back(params.currentArea.keys[i].first);
+			params.collectedKeys->push_back(currentArea.keys[i].first);
+			currentArea.keys[i].second = false; // key is collected
+
+			// I could remember the places where I need a key and go there if the key is collected but this is easier :D
+			for (Areas::iterator i = params.areas->begin(); i != params.areas->end(); ++i)
+			{
+				i->second.visited = false;
+			}
 		}
 	}
 
 	// searching for a path to go through
-	for (const AreaLink & i : params.currentAreaLinks)
+	for (size_t i = 0; i < currentAreaLinks.size(); ++i)
 	{
-		bool hasKey = params.collectedKeys.size() == 0;
-		for (const string & s : params.collectedKeys)
+		bool hasKey = currentAreaLinks[i].unlockedWithKey == "";
+		if (!hasKey)
 		{
-			if (s == i.unlockedWithKey)
+			for (const string & s : *params.collectedKeys)
 			{
-				hasKey = true;
-				break;
+				if (s == currentAreaLinks[i].unlockedWithKey)
+				{
+					hasKey = true;
+					break;
+				}
 			}
 		}
+		
 		// Not visited and we have the key (if we need one in the first place)
-		if (!i.toArea->visited && (i.unlockedWithKey == "" || hasKey))
+		if (!currentAreaLinks[i].toArea->visited && !currentAreaLinks[i].toArea->visiting && hasKey)
 		{
-			params.currentArea = params.areas[i.toArea->name];
-
-			params.currentAreaLinks = params.gameMap[i.toArea->name];
+			params.currentArea = currentAreaLinks[i].toArea->name;
 
 			innerTraverse(params);
+
+			i = 0;
+			--i;
 		}
 	}
-	params.currentArea.visited = true;
+
+	currentArea.visiting = false;
+	currentArea.visited = true;
 }
 
 // Starting DFS
 // throws std::out_of_range if beginning is not an area
-void traverse(GameMap & gameMap, Areas & areas, const string & begining)
+void traverse(AreaLinks * AreaLinks, Areas * areas, const string & begining)
 {
-	Area & startArea = areas.at(begining);
-
-	vector<AreaLink> & startAreaLinks = gameMap[begining];
-
 	vector<string> keys;
 
 	TraversalParams params = {
-		gameMap,
+		AreaLinks,
 		areas,
-		startArea,
-		startAreaLinks,
-		keys
+		begining,
+		&keys
 	};
 
 	innerTraverse(params);
 }
 
-bool areAllVisited(const Areas & areas)
+bool logDOT(AreaLinks * areaLinks, Areas * areas, const string & path)
 {
-	for (auto& i : areas)
+	ofstream out(path);
+	if (!out)
 	{
-		if (i.second.visited == false)
+		cerr << "Can't open file " << path << endl;
+		return false;
+	}
+
+	out << "digraph {\n";
+
+	for (AreaLinks::iterator i = areaLinks->begin(); i != areaLinks->end(); ++i)
+	{
+		for (size_t j = 0; j < i->second.size(); ++j)
 		{
-			return false;
+			out << i->first << " -> " << i->second[j].toArea->name << " [label=\"" << i->second[j].unlockedWithKey << "\"];\n";
 		}
 	}
+
+	for (Areas::iterator i = areas->begin(); i != areas->end(); ++i)
+	{
+		if (i->second.visited)
+		{
+			out << i->first << "[label=\"" << i->first;
+			for (size_t j = 0; j < i->second.keys.size(); ++j)
+			{
+				out << " [" << i->second.keys[j].first << ']';
+			}
+			out << "\"color=green,style=filled];\n";
+		}
+		else
+		{
+			out << i->first << "[label=\"" << i->first;
+			for (size_t j = 0; j < i->second.keys.size(); ++j)
+			{
+				out << " [" << i->second.keys[j].first << ']';
+			}
+			out << "\"color=red,style=filled];\n";
+		}
+	}
+
+	out << "}\n";
+	out.close();
 	return true;
 }
 
@@ -215,14 +233,16 @@ int main()
 	string str;
 	//cin >> str;
 	Areas areas;
-	GameMap gameMap;
+	AreaLinks AreaLinks;
 
-	if (!inp(gameMap, areas, "gamemap.txt"))
+	if (!inp(AreaLinks, areas, "gamemap.txt"))
 	{
 		return 1;
 	}
-	cin >> str; // begin area
-	traverse(gameMap, areas, str);
-	cout << "Are all visited ? " << (areAllVisited(areas) ? "True." : "False.") << endl;
+	cin >> str; // start area
+	traverse(&AreaLinks, &areas, str);
+	
+	logDOT(&AreaLinks, &areas, "logdot.txt");
+
 	return 0;
 }

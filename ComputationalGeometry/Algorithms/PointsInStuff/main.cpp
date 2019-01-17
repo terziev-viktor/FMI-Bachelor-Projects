@@ -1,5 +1,4 @@
 #include "../Algorithms/STDFunctions.h"
-
 bool PointInPoly(const PointsSet & polygon, const Point & P)
 {
 	size_t c = 0;
@@ -57,7 +56,6 @@ bool PointInTriangle(const Point & A, const Point & B, const Point & C, const Po
 	double b = TriangleOriant(A, P, C) / abc;
 	return a >= 0.0 && a <= 1.0 && b >= 0.0 && b <= 1.0 && a + b <= 1.0;
 }
-
 
 bool PointInConvexPolySearch(const PointsSet & poly, const Point & p, size_t first, size_t last)
 {
