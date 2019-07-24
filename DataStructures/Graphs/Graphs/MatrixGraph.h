@@ -15,8 +15,6 @@ private:
 	const size_t INITSIZE = 100;
 	array<Vertex, INITSIZE> data;
 public:
-	MatrixGraph();
-	~MatrixGraph();
 };
 
 template<class T>
