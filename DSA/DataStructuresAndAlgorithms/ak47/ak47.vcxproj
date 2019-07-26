@@ -153,13 +153,19 @@
   <ItemGroup>
     <ClInclude Include="Automata.h" />
     <ClInclude Include="ak47.h" />
+    <ClInclude Include="AutomataOperator.h" />
+    <ClInclude Include="ConcatinationOperator.h" />
     <ClInclude Include="NAutomata.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Regex.h" />
     <ClInclude Include="UnionFind.hpp" />
+    <ClInclude Include="UnionOperator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ak47.cpp" />
     <ClCompile Include="Automata.cpp" />
+    <ClCompile Include="AutomataOperator.cpp" />
+    <ClCompile Include="ConcatinationOperator.cpp" />
     <ClCompile Include="NAutomata.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -167,6 +173,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Regex.cpp" />
+    <ClCompile Include="UnionOperator.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

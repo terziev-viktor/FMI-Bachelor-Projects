@@ -15,8 +15,6 @@ namespace ak47
 	class NAutomata
 	{
 	public:
-		friend NAutomata operator+(const Automata& A, const Automata& B);
-
 		struct Q
 		{
 			unordered_map<char, vector<size_t>> q;
@@ -24,15 +22,17 @@ namespace ak47
 			Q() :isFinal(false) {}
 		};
 
-		NAutomata()
-			:start(0), isInit(false)
-		{	}
+		NAutomata();
+
+		NAutomata(const Automata& other);
 
 		NAutomata(const string& alphabet, size_t nQ, size_t start, const vector<size_t>& Finals);
 
-		void Init(const string& alphabet, size_t nQ, size_t start, const vector<size_t>& Finals);
+		NAutomata(char c);
 
 		void operator()(size_t from, char with, const vector<size_t> & to);
+
+		NAutomata operator()(size_t p) const;
 
 		void SetStart(size_t start);
 
@@ -40,19 +40,42 @@ namespace ak47
 
 		void SetFinals(const vector<size_t> Finals);
 
+		vector<size_t> GetFinals() const;
+
+		bool IsFinal(size_t q) const;
+
 		inline const string& Alphabet() const { return this->alphabet; }
 
 		bool Matches(const string& str) const;
 
 		inline const vector<NAutomata::Q>& Qs() const { return this->A; }
+
+		inline size_t nQ() const { return this->A.size(); }
+
+		NAutomata& ConcatWith(const NAutomata& B);
+
+		NAutomata& operator+=(const NAutomata& B);
+
+		NAutomata operator*() const;
+
+		NAutomata operator^(size_t p) const;
+
+		NAutomata& operator^=(size_t p);
+
 	protected:
 		vector<Q> A;
 		size_t start;
 		string alphabet;
 		bool isInit;
 		void fDelta(size_t from, char with, const vector<size_t> & to, bool force);
-	};
-	
-	NAutomata operator+(const Automata& A, const Automata& B);
 
+	private:
+		void Init(const string& alphabet, size_t nQ, size_t start, const vector<size_t>& Finals);
+
+	};
+	// Concatination of A and B
+	NAutomata operator<=(const NAutomata& A, const NAutomata& B);
+
+	// Union of A and B
+	NAutomata operator+(const NAutomata& A, const NAutomata& B);
 }

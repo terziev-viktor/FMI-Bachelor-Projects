@@ -68,6 +68,21 @@ static bool ready = false;
 
 int main()
 {
+	NAutomata a('a');
+	a ^= 3;
+
+	string str = "";
+	string str1 = "a";
+	string str2 = "aa";
+	string str3 = "aaa";
+	string str4 = "aaaa";
+
+	cout << "a " << (a.Matches(str) ? "matches " : "does not match ") << str << endl;
+	cout << "a " << (a.Matches(str1) ? "matches " : "does not match ") << str1 << endl;
+	cout << "a " << (a.Matches(str2) ? "matches " : "does not match ") << str2 << endl;
+	cout << "a " << (a.Matches(str3) ? "matches " : "does not match ") << str3 << endl;
+	cout << "a " << (a.Matches(str4) ? "matches " : "does not match ") << str4 << endl;
+
 	Automata A("ab", 2, 0, { 1 });
 	A(0, 'a', 1); //                ____
 	A(0, 'b', 1); //           a,b  |  | a
@@ -76,17 +91,16 @@ int main()
 				  //         |__b__|
 				  //
 						  //				___________a,b____________
-	NAutomata AA = A + A; //                |___                      |___     
+	NAutomata AA = A<=A;  //                |___                      |___     
 						  //           a,b  |  | a               a,b  |  | a
 						  //  start-(0)---> 1 <-        start-(0)--->(1)<-
 						  //         ^     |                   ^     |
 						  //         |__b__|                   |__b__|
 						  //						  //
 
-	string str = "aaaaab";
-	string str1 = "aabbaaabb";
-	string str2 = "a";
-
+	str = "aaaaab";
+	str1 = "aabbaaabb";
+	str2 = "a";
 	cout << "AA " << (AA.Matches(str) ? "matches " : "does not match ") << str << endl;
 	cout << "AA " << (AA.Matches(str1) ? "matches " : "does not match ") << str1 << endl;
 	cout << "AA " << (AA.Matches(str2) ? "matches " : "does not match ") << str2 << endl;

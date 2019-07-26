@@ -1,9 +1,27 @@
 #include "pch.h"
 #include "Automata.h"
 
+ak47::Automata::Automata()
+{
+	this->start = 0;
+	this->A.push_back(std::move(Automata::Q()));
+	this->isInit = true;
+}
+
 ak47::Automata::Automata(const string& alphabet, size_t nQ, size_t start, const vector<size_t> & Finals)
 {
 	this->Init(alphabet, nQ, start, Finals);
+}
+
+ak47::Automata::Automata(char c)
+{
+	this->start = 0;
+	this->A.reserve(2);
+	this->A.push_back(std::move(Automata::Q()));
+	this->A.push_back(std::move(Automata::Q()));
+	this->A.back().isFinal = true;
+	this->A[0].q[c] = 1;
+	this->alphabet = c;
 }
 
 void ak47::Automata::Init(const string& alphabet, size_t nQ, size_t start, const vector<size_t>& Finals)

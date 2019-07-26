@@ -11,7 +11,6 @@ namespace ak47
 
 	class Automata
 	{
-		
 	public:
 		struct Q
 		{
@@ -20,13 +19,11 @@ namespace ak47
 			Q() :isFinal(false){}
 		};
 
-		Automata()
-			:start(0),isInit(false)
-		{	}
+		Automata();
 
 		Automata(const string& alphabet, size_t nQ, size_t start, const vector<size_t>& Finals);
 
-		void Init(const string& alphabet, size_t nQ, size_t start, const vector<size_t>& Finals);
+		Automata(char c);
 
 		void operator()(size_t from, char with, size_t to);
 
@@ -56,6 +53,8 @@ namespace ak47
 		string alphabet;
 		bool isInit;
 		void fDelta(size_t from, char with, size_t to, bool force);
+	private:
+		void Init(const string& alphabet, size_t nQ, size_t start, const vector<size_t>& Finals);
 	};
 
 	// Concatination of A and B
