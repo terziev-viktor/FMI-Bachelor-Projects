@@ -1,5 +1,6 @@
 #pragma once
 #include "NAutomata.h"
+#include <memory>
 
 namespace ak47
 {
@@ -17,7 +18,7 @@ namespace ak47
 
 	protected:
 		std::string regex;
-		NAutomata automata;
+		std::shared_ptr<ak47::NAutomata> automata;
 		bool isInit;
 	};
 

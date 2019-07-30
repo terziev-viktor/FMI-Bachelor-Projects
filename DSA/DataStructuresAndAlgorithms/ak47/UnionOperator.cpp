@@ -11,10 +11,22 @@ ak47::UnionOperator::~UnionOperator()
 {
 }
 
-bool ak47::UnionOperator::operator()(const NAutomata& LeftArg, const NAutomata& RightArg, NAutomata& out)
+bool ak47::UnionOperator::operator()(std::stack<Unit>* the_stack)
 {
-	out = LeftArg;
-	out += RightArg;
+	Unit rightArg = the_stack->top();
+	the_stack->pop();
+	Unit op = the_stack->top();
+	if (op.regex != "+")
+	{
+		the_stack->push(rightArg);
+		return false;
+	}
+	the_stack->pop();
+	Unit leftArg = the_stack->top();
+	the_stack->pop();
+	(*leftArg.automata) += *rightArg.automata;
+	leftArg.regex = leftArg.regex + op.regex + rightArg.regex;
+	the_stack->push(leftArg);
 	return true;
 }
 

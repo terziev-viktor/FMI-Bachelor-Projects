@@ -13,12 +13,12 @@ AutomataOperator::~AutomataOperator()
 {
 }
 
-bool AutomataOperator::operator==(const AutomataOperator& b)
+inline bool AutomataOperator::operator==(const AutomataOperator& b)
 {
 	return this->symbol == b.symbol;
 }
 
-bool ak47::AutomataOperator::operator==(char c)
+inline bool ak47::AutomataOperator::operator==(char c)
 {
 	return this->symbol == c;
 }
@@ -43,7 +43,20 @@ std::shared_ptr<AutomataOperator> ak47::AutomataOperators::Get(char c)
 			return i;
 		}
 	}
-	throw std::exception("Non existing Automataoperator");
+	return nullptr;
+}
+
+bool ak47::AutomataOperators::OperateOnStack(std::stack<Unit>* stack_ptr)
+{
+	for (auto& op : AutomataOperators::TheInstance().operators)
+	{
+		if ((*op)(stack_ptr))
+		{
+			return true; // operated
+		}
+	}
+	// did not operate, something's wrong
+	return false;
 }
 
 bool ak47::AutomataOperators::IsValidOperator(char c)
@@ -61,4 +74,15 @@ bool ak47::AutomataOperators::IsValidOperator(char c)
 void ak47::AutomataOperators::RegisterOperator(std::shared_ptr<AutomataOperator> op)
 {
 	this->operators.push_back(std::move(op));
+}
+
+ak47::AutomataOperator::Exception::Exception(const char* const message, const char* const thrown_by)
+	:std::exception(message)
+{
+	this->thrown_by = thrown_by;
+}
+
+inline const std::string& ak47::AutomataOperator::Exception::ThrownBy() const
+{
+	 return this->thrown_by; 
 }

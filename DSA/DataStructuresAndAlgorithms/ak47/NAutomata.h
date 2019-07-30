@@ -52,6 +52,8 @@ namespace ak47
 
 		inline size_t nQ() const { return this->A.size(); }
 
+		NAutomata& KleeneStar();
+
 		NAutomata& ConcatWith(const NAutomata& B);
 
 		NAutomata& operator+=(const NAutomata& B);

@@ -173,6 +173,32 @@ bool ak47::NAutomata::Matches(const string& str) const
 	}
 }
 
+ak47::NAutomata & ak47::NAutomata::KleeneStar()
+{
+	size_t n = this->nQ();
+	for (size_t i = 0; i < n; ++i) // iterate Qs of A
+	{
+		if (this->A[i].isFinal && i != this->GetStart()) // every final that is not the start will imitate start
+		{
+			for (auto& q : this->A[this->GetStart()].q) // iterate map of start of A
+			{
+				vector<size_t>& rf = this->A[i].q[q.first];
+				rf.insert(rf.end(), q.second.begin(), q.second.end());
+			}
+		}
+	}
+
+	this->A.push_back(NAutomata::Q());
+	for (auto& q : this->A[this->GetStart()].q)
+	{
+		vector<size_t>& rf = this->A.back().q[q.first];
+		rf.insert(rf.end(), q.second.begin(), q.second.end());
+	}
+	this->SetStart(this->nQ() - 1);
+	this->A.back().isFinal = true;
+	return *this;
+}
+
 ak47::NAutomata& ak47::NAutomata::ConcatWith(const NAutomata& B)
 {
 	size_t n = B.Alphabet().size();
@@ -285,27 +311,8 @@ ak47::NAutomata ak47::NAutomata::operator*() const
 {
 	NAutomata A = *this;
 
-	size_t n = A.nQ();
-	for (size_t i = 0; i < n; ++i) // iterate Qs of A
-	{
-		if (A.A[i].isFinal && i != A.GetStart()) // every final that is not the start will imitate start
-		{
-			for (auto& q : A.A[A.GetStart()].q) // iterate map of start of A
-			{
-				vector<size_t>& rf = A.A[i].q[q.first];
-				rf.insert(rf.end(), q.second.begin(), q.second.end());
-			}
-		}
-	}
-
-	A.A.push_back(NAutomata::Q());
-	for (auto& q : A.A[A.GetStart()].q)
-	{
-		vector<size_t>& rf = A.A.back().q[q.first];
-		rf.insert(rf.end(), q.second.begin(), q.second.end());
-	}
-	A.SetStart(A.nQ() - 1);
-	A.A.back().isFinal = true;
+	A.KleeneStar();
+	
 	return A;
 }
 

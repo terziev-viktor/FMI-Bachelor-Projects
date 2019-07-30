@@ -42,7 +42,7 @@
     <ClInclude Include="UnionOperator.h">
       <Filter>Header Files\Operators</Filter>
     </ClInclude>
-    <ClInclude Include="ConcatinationOperator.h">
+    <ClInclude Include="StarOperator.h">
       <Filter>Header Files\Operators</Filter>
     </ClInclude>
   </ItemGroup>
@@ -68,7 +68,7 @@
     <ClCompile Include="UnionOperator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ConcatinationOperator.cpp">
+    <ClCompile Include="StarOperator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

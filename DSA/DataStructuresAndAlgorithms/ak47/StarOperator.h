@@ -3,17 +3,12 @@
 
 namespace ak47
 {
-	class UnionOperator :
-		public AutomataOperator
+	class StarOperator
+		:public AutomataOperator
 	{
-	public:
-		UnionOperator();
-
-		virtual ~UnionOperator();
+		StarOperator();
 
 		bool operator()(std::stack<Unit> * the_stack) override;
 	};
+
 }
-
-
-
