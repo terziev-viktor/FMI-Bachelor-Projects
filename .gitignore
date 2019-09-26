@@ -292,3 +292,6 @@ __pycache__/
 
 # data files
 *.dat
+
+#VulkanTest executable
+VulkanTest
