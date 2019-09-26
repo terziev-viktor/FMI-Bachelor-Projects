@@ -10,8 +10,26 @@
 #include <map>
 #include <set>
 
+// logging helper function that logs to std::cout
+void log(const char * msg);
 
 void populateDebugMessenerInfo(VkDebugUtilsMessengerCreateInfoEXT& info);
+
+VkResult CreateDebugMessengerEXT(const VkInstance & instance, const
+VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const
+VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT*
+pDebugMessenger);
+
+void DestroyDebugUtilsMessengerEXT(VkInstance instance,
+VkDebugUtilsMessengerEXT debugMessenger, const
+VkAllocationCallbacks* pAllocator);
+
+struct SwapChainSupportDetails
+{
+    VkSurfaceCapabilitiesKHR capabilities;
+    std::vector<VkSurfaceFormatKHR> surfaceFormats;
+    std::vector<VkPresentModeKHR> presentModes;
+};
 
 struct QueueFamilyIndices 
 {
@@ -24,15 +42,6 @@ struct QueueFamilyIndices
     }
 };
 
-VkResult CreateDebugMessengerEXT(const VkInstance & instance, const
-VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const
-VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT*
-pDebugMessenger);
-
-void DestroyDebugUtilsMessengerEXT(VkInstance instance,
-VkDebugUtilsMessengerEXT debugMessenger, const
-VkAllocationCallbacks* pAllocator);
-
 class HelloVulkan
 {
 public:
@@ -40,23 +49,23 @@ public:
 
     ~HelloVulkan();
 
-    inline operator bool()
-    {
-        return this->isInit;
-    }
+    inline operator bool() { return this->isInit; }
 
-    inline void run()
-    {
-        loop();
-    }
+    inline void run() { loop(); }
 
-    const int WIDTH = 800;
-    const int HEIGHT = 600;
+    const uint32_t WIDTH = 800;
+    const uint32_t HEIGHT = 600;
 
     const std::vector<const char*> validationLayers = 
     {
-        "VK_LAYER_KHRONOS_validation"
+        "VK_LAYER_KHRONOS_validation",
     };
+
+    const std::vector<const char *> deviceExtensions = 
+    {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    };
+
 
     #ifdef NDEBUG
         const bool enableValidationLayers = false;
@@ -64,7 +73,9 @@ public:
         const bool enableValidationLayers = true;
     #endif
 
-    bool checkValidationLayerSupport();
+    bool checkValidationLayerSupport() const;
+
+    bool checkDeviceExtensionSupport(VkPhysicalDevice gpu) const;
 
     ///
     /// Debug callback function
@@ -100,14 +111,28 @@ private:
     VkQueue graphicsQueue;
     VkQueue presentQueue;
     VkSurfaceKHR surface;
+    VkSwapchainKHR swapChain;
+    std::vector<VkImage> swapChainImages;
+    VkFormat swapChainImageFormat;
+    VkExtent2D swapChainExtent;
+    std::vector<VkImageView> swapChainImageViews;
 
-    QueueFamilyIndices findQueueFamilies();
+    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice gpu) const;
 
-    bool isDeviceSuitable(const VkPhysicalDeviceProperties & properties, const VkPhysicalDeviceFeatures & features, const VkPhysicalDevice & gpu);
+    SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice gpu) const;
+
+    VkSurfaceFormatKHR chooseSwapChainSurfaceFormat(const std::vector<VkSurfaceFormatKHR> & availableFormats) const;
+
+    VkPresentModeKHR chooseSwapChainPresentMode(const std::vector<VkPresentModeKHR> & availableModes) const;
+
+    VkExtent2D chooseSwapChainExtent2D(const VkSurfaceCapabilitiesKHR & capabilities) const;
+
+    bool isDeviceSuitable(const VkPhysicalDeviceProperties & properties, const VkPhysicalDeviceFeatures & features, const VkPhysicalDevice & gpu) const;
     
-    uint32_t rateGPU(VkPhysicalDevice gpu);
+    uint32_t rateGPU(VkPhysicalDevice gpu) const;
 
     void createInstance();
+
     void createSurface();
 
     std::vector<const char*> getRequiredExtensions();
@@ -117,6 +142,10 @@ private:
     void pickPhysicalDevice();
 
     void createLogicalDevice();
+
+    void createSwapChain();
+
+    void createImageViews();
 
     bool init();
 
