@@ -1,11 +1,4 @@
 #include <iostream>
-#include <stdexcept>
-#include <functional>
-#include <cstdlib>
-#include <vector>
-#include <string.h>
-#include <map>
-#include <set>
 
 #include "HelloVulkan.h"
 

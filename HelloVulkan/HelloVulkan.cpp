@@ -1,4 +1,5 @@
 #include "HelloVulkan.h"
+#include <fstream>
 
 void log(const char * msg)
 {
@@ -252,6 +253,36 @@ bool HelloVulkan::checkValidationLayerSupport() const
     return true;
 }
 
+std::vector<char> HelloVulkan::readFile(const std::string & path)
+{
+    std::ifstream ifs(path, std::ios::ate | std::ios::binary);
+    if(!ifs.is_open())
+    {
+        throw std::runtime_error(path + " could not be opened");
+    }
+    size_t fileSize = static_cast<size_t>(ifs.tellg());
+    std::vector<char> buffer(fileSize);
+    ifs.seekg(0);
+    ifs.read(buffer.data(), fileSize);
+    ifs.close();
+
+    return buffer; // ofc move c-tor will be used here so np
+}
+
+VkShaderModule HelloVulkan::createShaderModule(const std::vector<char> & shaderCode)
+{
+    VkShaderModuleCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize = shaderCode.size();
+    createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode.data());
+    VkShaderModule shaderModule;
+    if(VK_SUCCESS != vkCreateShaderModule(this->device, &createInfo, nullptr, &shaderModule))
+    {
+        throw std::runtime_error("Shader Module could not be created");
+    }
+    return shaderModule;
+}
+
 bool HelloVulkan::checkDeviceExtensionSupport(VkPhysicalDevice gpu) const
 {
     uint32_t count = 0;
@@ -384,6 +415,7 @@ void HelloVulkan::pickPhysicalDevice()
         throw std::runtime_error("failed to find a suitable GPU!");
     }
 }
+
 void HelloVulkan::createLogicalDevice()
 {
     QueueFamilyIndices indices = findQueueFamilies(this->physicalDevice);
@@ -494,6 +526,32 @@ void HelloVulkan::createSwapChain()
     this->swapChainImageFormat = format.format;
 }
 
+void HelloVulkan::createGraphicsPipeline()
+{
+    std::vector<char> vertexShader = readFile("shaders/vert.spv");
+    std::vector<char> fragmentShader = readFile("shaders/frag.spv");
+
+    VkShaderModule vertexShaderModule = this->createShaderModule(vertexShader);
+    VkShaderModule fragmentShaderModule = this->createShaderModule(fragmentShader);
+
+    VkPipelineShaderStageCreateInfo vertShaderStageCreateInfo = {};
+    vertShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertShaderStageCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vertShaderStageCreateInfo.module = vertexShaderModule;
+    vertShaderStageCreateInfo.pName = "main";
+    
+    VkPipelineShaderStageCreateInfo fragmentShaderCreateInfo = {};
+    fragmentShaderCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragmentShaderCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fragmentShaderCreateInfo.module = fragmentShaderModule;
+    fragmentShaderCreateInfo.pName = "main";
+
+    VkPipelineShaderStageCreateInfo crateInfos[] = {vertShaderStageCreateInfo, fragmentShaderCreateInfo};
+
+    vkDestroyShaderModule(this->device, vertexShaderModule, nullptr);
+    vkDestroyShaderModule(this->device, fragmentShaderModule, nullptr);
+}
+
 bool HelloVulkan::init()
 {
     glfwInit();
@@ -510,15 +568,16 @@ bool HelloVulkan::init()
     createLogicalDevice();
     createSwapChain();
     createImageViews();
-
+    createGraphicsPipeline();
     return true;
 }
 
 void HelloVulkan::createImageViews()
 {
-    this->swapChainImageViews.resize(this->swapChainImages.size());
+    size_t swapChainImagesSize = this->swapChainImages.size();
+    this->swapChainImageViews.resize(swapChainImagesSize);
     
-    for (size_t i = 0; i < swapChainImages.size(); ++i)
+    for (size_t i = 0; i < swapChainImagesSize; ++i)
     {
         VkImageViewCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;

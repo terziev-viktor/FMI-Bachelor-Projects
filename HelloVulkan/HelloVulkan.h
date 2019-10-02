@@ -66,7 +66,6 @@ public:
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
 
-
     #ifdef NDEBUG
         const bool enableValidationLayers = false;
     #else
@@ -117,6 +116,11 @@ private:
     VkExtent2D swapChainExtent;
     std::vector<VkImageView> swapChainImageViews;
 
+    // Helper Function reading a shader file:
+    static std::vector<char> readFile(const std::string & path);
+
+    VkShaderModule createShaderModule(const std::vector<char> & shaderCode);
+
     QueueFamilyIndices findQueueFamilies(VkPhysicalDevice gpu) const;
 
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice gpu) const;
@@ -146,6 +150,8 @@ private:
     void createSwapChain();
 
     void createImageViews();
+
+    void createGraphicsPipeline();
 
     bool init();
 
