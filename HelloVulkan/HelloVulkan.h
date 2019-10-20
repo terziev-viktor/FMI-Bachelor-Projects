@@ -55,6 +55,7 @@ public:
 
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
+    const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
     const std::vector<const char*> validationLayers = 
     {
@@ -121,9 +122,11 @@ private:
     std::vector<VkFramebuffer> swapChainFramebuffers;
     VkCommandPool commandPool;
     std::vector<VkCommandBuffer> commandBuffers;
-    VkSemaphore imageAvailableSemaphor;
-    VkSemaphore renderFinishedSemaphor;
+    std::vector<VkSemaphore> imageAvailableSemaphors;
+    std::vector<VkSemaphore> renderFinishedSemaphors;
+    std::vector<VkFence> inFlightFences;
 
+    uint64_t currentFrame = 0;
     // Helper Function reading a shader file:
     static std::vector<char> readFile(const std::string & path);
 
@@ -171,7 +174,7 @@ private:
 
     // Create VkSemaphor imageAvailable
     // Create VkSemaphor renderFinished
-    void createSemaphors();
+    void createSyncObjects();
 
     bool init();
 

@@ -1,6 +1,8 @@
 #include "HelloVulkan.h"
 #include <fstream>
 #include <assert.h>
+#include <chrono>
+#include <thread>
 
 void log(const char * msg)
 {
@@ -72,15 +74,18 @@ bool HelloVulkan::init()
     createFramebuffers();
     createCommandPool();
     createCommandBuffers();
-    createSemaphors();
+    createSyncObjects();
     return true;
 }
 
 HelloVulkan::~HelloVulkan()
 {   
-    vkDestroySemaphore(this->device, this->renderFinishedSemaphor, nullptr);
-    vkDestroySemaphore(this->device, this->imageAvailableSemaphor, nullptr);
-
+    for (size_t i = 0; i < this->MAX_FRAMES_IN_FLIGHT; ++i)
+    {
+        vkDestroySemaphore(this->device, this->renderFinishedSemaphors[i], nullptr);
+        vkDestroySemaphore(this->device, this->imageAvailableSemaphors[i], nullptr);
+        vkDestroyFence(this->device, this->inFlightFences[i], nullptr);
+    }
     vkDestroyCommandPool(this->device, this->commandPool, nullptr);
 
     for (auto &&framebuffer : this->swapChainFramebuffers)
@@ -831,18 +836,28 @@ void HelloVulkan::createCommandBuffers()
     
 }
 
-void HelloVulkan::createSemaphors()
+void HelloVulkan::createSyncObjects()
 {
-    VkSemaphoreCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    this->imageAvailableSemaphors.resize(this->MAX_FRAMES_IN_FLIGHT);
+    this->renderFinishedSemaphors.resize(this->MAX_FRAMES_IN_FLIGHT);
+    this->inFlightFences.resize(this->MAX_FRAMES_IN_FLIGHT);
 
-    if(VK_SUCCESS != vkCreateSemaphore(this->device, &createInfo, nullptr, &this->renderFinishedSemaphor) ||
-        VK_SUCCESS != vkCreateSemaphore(this->device, &createInfo, nullptr, &this->imageAvailableSemaphor))
+    VkSemaphoreCreateInfo semaphoresInfo = {};
+    semaphoresInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VkFenceCreateInfo fenceInfo = {};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    for (size_t i = 0; i < this->MAX_FRAMES_IN_FLIGHT; ++i)
     {
-        assert(!"Could not create semaphors");
+        if(VK_SUCCESS != vkCreateSemaphore(this->device, &semaphoresInfo, nullptr, &this->renderFinishedSemaphors[i]) ||
+        VK_SUCCESS != vkCreateSemaphore(this->device, &semaphoresInfo, nullptr, &this->imageAvailableSemaphors[i]) ||
+        VK_SUCCESS != vkCreateFence(this->device, &fenceInfo, nullptr, &this->inFlightFences[i]))
+        {
+            assert(!"Could not create semaphors");
+        }
     }
-
-
 }
 
 void HelloVulkan::createImageViews()
@@ -875,46 +890,59 @@ void HelloVulkan::createImageViews()
 
 void HelloVulkan::drawFrame()
 {
+    vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+    vkResetFences(device, 1, &inFlightFences[currentFrame]);
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(this->device, this->swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphor, VK_NULL_HANDLE, &imageIndex);
-
+    vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphors[currentFrame], VK_NULL_HANDLE, &imageIndex);
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    VkSemaphore waitSemaphors[] = { imageAvailableSemaphor };
-    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+                                        
+    VkSemaphore waitSemaphores[] = { imageAvailableSemaphors[currentFrame]};
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = waitSemaphors;
+    submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
+
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
-    VkSemaphore signalSemaphors[] = { this->renderFinishedSemaphor };
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = signalSemaphors;
 
-    if (VK_SUCCESS != vkQueueSubmit(this->graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE))
+    VkSemaphore signalSemaphores[] = { renderFinishedSemaphors[currentFrame]};
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = signalSemaphores;
+
+    if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) 
     {
-        assert(!"failed to submit draw commandbuffer!");
+        assert(!"failed to submit draw command buffer!");
     }
+
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = signalSemaphors;
+    presentInfo.pWaitSemaphores = signalSemaphores;
+
     VkSwapchainKHR swapChains[] = { swapChain };
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
+
     presentInfo.pImageIndices = &imageIndex;
 
-    vkQueuePresentKHR(this->presentQueue, &presentInfo);
-    vkQueueWaitIdle(this->presentQueue);
+    vkQueuePresentKHR(presentQueue, &presentInfo);
+
+    currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void HelloVulkan::loop()
 {
-    while (!glfwWindowShouldClose(window)) 
+    while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
+        auto begin = std::chrono::high_resolution_clock::now();
         drawFrame();
+        auto end = std::chrono::high_resolution_clock::now();       
+        std::chrono::duration<double> delta = std::chrono::duration_cast<std::chrono::duration<double>>(end - begin);
+        uint32_t fps = 1.0 / delta.count();
+        std::cout << fps << " fps\r";
     }
-
     vkDeviceWaitIdle(this->device);
 }
