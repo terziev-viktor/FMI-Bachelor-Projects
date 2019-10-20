@@ -121,6 +121,8 @@ private:
     std::vector<VkFramebuffer> swapChainFramebuffers;
     VkCommandPool commandPool;
     std::vector<VkCommandBuffer> commandBuffers;
+    VkSemaphore imageAvailableSemaphor;
+    VkSemaphore renderFinishedSemaphor;
 
     // Helper Function reading a shader file:
     static std::vector<char> readFile(const std::string & path);
@@ -166,6 +168,10 @@ private:
     void createCommandPool();
 
     void createCommandBuffers();
+
+    // Create VkSemaphor imageAvailable
+    // Create VkSemaphor renderFinished
+    void createSemaphors();
 
     bool init();
 

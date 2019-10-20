@@ -1,5 +1,6 @@
 #include "HelloVulkan.h"
 #include <fstream>
+#include <assert.h>
 
 void log(const char * msg)
 {
@@ -71,11 +72,15 @@ bool HelloVulkan::init()
     createFramebuffers();
     createCommandPool();
     createCommandBuffers();
+    createSemaphors();
     return true;
 }
 
 HelloVulkan::~HelloVulkan()
 {   
+    vkDestroySemaphore(this->device, this->renderFinishedSemaphor, nullptr);
+    vkDestroySemaphore(this->device, this->imageAvailableSemaphor, nullptr);
+
     vkDestroyCommandPool(this->device, this->commandPool, nullptr);
 
     for (auto &&framebuffer : this->swapChainFramebuffers)
@@ -292,7 +297,7 @@ std::vector<char> HelloVulkan::readFile(const std::string & path)
     std::ifstream ifs(path, std::ios::ate | std::ios::binary);
     if(!ifs.is_open())
     {
-        throw std::runtime_error(path + " could not be opened");
+        assert(!"Could not open file");
     }
     size_t fileSize = static_cast<size_t>(ifs.tellg());
     std::vector<char> buffer(fileSize);
@@ -312,7 +317,7 @@ VkShaderModule HelloVulkan::createShaderModule(const std::vector<char> & shaderC
     VkShaderModule shaderModule;
     if(VK_SUCCESS != vkCreateShaderModule(this->device, &createInfo, nullptr, &shaderModule))
     {
-        throw std::runtime_error("Shader Module could not be created");
+        assert(!"Shader Module could not be created");
     }
     return shaderModule;
 }
@@ -359,7 +364,7 @@ void HelloVulkan::createInstance()
     
     if(this->enableValidationLayers && !this->checkValidationLayerSupport())
     {
-        throw std::runtime_error("Could not create vulkan instance");            
+        assert(!"Could not create vulkan instance");            
     }
     std::vector<const char*> glfwExtensions = getRequiredExtensions();
     createInfo.enabledExtensionCount = glfwExtensions.size();
@@ -380,7 +385,7 @@ void HelloVulkan::createInstance()
     VkResult result = vkCreateInstance(&createInfo, nullptr, &this->instance);
     if (VK_SUCCESS != result)
     {
-        throw std::runtime_error("Could not create vulkan instance");
+        assert(!"Could not create vulkan instance");
     }
 }
     
@@ -388,7 +393,7 @@ void HelloVulkan::createSurface()
 {
     if(VK_SUCCESS != glfwCreateWindowSurface(this->instance, this->window, nullptr, &this->surface))
     {
-        throw std::runtime_error("could not create window surface");
+        assert(!"could not create window surface");
     }
 }
 
@@ -413,7 +418,7 @@ void HelloVulkan::setupDebugMessanger()
         info.pUserData = this; // optional
         if(VK_SUCCESS != CreateDebugMessengerEXT(this->instance, &info, nullptr, &this->debugMessenger))
         {
-            throw std::runtime_error("Cound not setup the debug messenger.");
+            assert(!"Cound not setup the debug messenger.");
         }
     }
 }
@@ -424,7 +429,7 @@ void HelloVulkan::pickPhysicalDevice()
     vkEnumeratePhysicalDevices(this->instance, &devicesCount, nullptr);
     if(devicesCount == 0)
     {
-        throw std::runtime_error("No GPUs with vulkan support found on the system");
+        assert(!"No GPUs with vulkan support found on the system");
     }
     std::multimap<uint32_t, VkPhysicalDevice> candidates;
     std::vector<VkPhysicalDevice> devices(devicesCount);
@@ -442,11 +447,11 @@ void HelloVulkan::pickPhysicalDevice()
     }
     else
     {
-        throw std::runtime_error("failed to find a suitable GPU!");
+        assert(!"failed to find a suitable GPU!");
     }
     if (physicalDevice == VK_NULL_HANDLE) 
     {
-        throw std::runtime_error("failed to find a suitable GPU!");
+        assert(!"failed to find a suitable GPU!");
     }
 }
 
@@ -493,7 +498,7 @@ void HelloVulkan::createLogicalDevice()
     }
     if(VK_SUCCESS != vkCreateDevice(this->physicalDevice, &createInfo, nullptr, &this->device))
     {
-        throw std::runtime_error("failed to create a logical device");
+        assert(!"failed to create a logical device");
     }
     vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
     vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
@@ -546,7 +551,7 @@ void HelloVulkan::createSwapChain()
 
     if (VK_SUCCESS != vkCreateSwapchainKHR(this->device, &createInfo, nullptr, &this->swapChain))
     {
-        throw std::runtime_error("Could not create swap chain");
+        assert(!"Could not create swap chain");
     }
 
     uint32_t count = 0;
@@ -580,6 +585,14 @@ void HelloVulkan::createRenderPass()
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorAttachmentRef;
+
+    VkSubpassDependency subpassDep = {};
+    subpassDep.srcSubpass = VK_SUBPASS_EXTERNAL;
+    subpassDep.dstSubpass = 0;
+    subpassDep.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpassDep.srcAccessMask = 0;
+    subpassDep.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpassDep.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     
     VkRenderPassCreateInfo renderPassInfo = {};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -587,10 +600,15 @@ void HelloVulkan::createRenderPass()
     renderPassInfo.pAttachments = &colorAttachment;
     renderPassInfo.subpassCount = 1;
     renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &subpassDep;
+
     if(VK_SUCCESS != vkCreateRenderPass(this->device, &renderPassInfo, nullptr, &this->renderPass)) 
     {
-        throw std::runtime_error("Could not create Render Pass ;(");
+        assert(!"Could not create Render Pass");
     }
+
+    
 }
 
 void HelloVulkan::createGraphicsPipeline()
@@ -700,7 +718,7 @@ void HelloVulkan::createGraphicsPipeline()
     
     if (VK_SUCCESS != vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout))
     {
-        throw std::runtime_error("Could not create pipeline layout");
+        assert(!"Could not create pipeline layout");
     }
 
     VkGraphicsPipelineCreateInfo pipelineInfo = {};
@@ -719,7 +737,7 @@ void HelloVulkan::createGraphicsPipeline()
 
     if(VK_SUCCESS != vkCreateGraphicsPipelines(this->device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->graphicsPipeline))
     {
-        throw std::runtime_error("Could not create graphics pipeline ;(");
+        assert(!"Could not create graphics pipeline ;(");
     }
     vkDestroyShaderModule(this->device, vertexShaderModule, nullptr);
     vkDestroyShaderModule(this->device, fragmentShaderModule, nullptr);
@@ -744,7 +762,7 @@ void HelloVulkan::createFramebuffers()
 
         if (VK_SUCCESS != vkCreateFramebuffer(device, &fbinfo, nullptr, &swapChainFramebuffers[i])) 
         {
-            throw std::runtime_error("Failed to create framebuffer");
+            assert(!"Failed to create framebuffer");
         }
     }
     
@@ -760,7 +778,7 @@ void HelloVulkan::createCommandPool()
 
     if (VK_SUCCESS != vkCreateCommandPool(device, &info, nullptr, &commandPool)) 
     {
-        throw std::runtime_error("failed to create command pool!");
+        assert(!"failed to create command pool!");
     }
 }
 
@@ -777,7 +795,7 @@ void HelloVulkan::createCommandBuffers()
 
     if(VK_SUCCESS != vkAllocateCommandBuffers(this->device, &allocInfo, this->commandBuffers.data()))
     {
-        throw std::runtime_error("failed to create command buffers");
+        assert(!"failed to create command buffers");
     }
 
     VkCommandBufferBeginInfo beginInfo = {};
@@ -788,7 +806,7 @@ void HelloVulkan::createCommandBuffers()
     {
         if(VK_SUCCESS != vkBeginCommandBuffer(this->commandBuffers[i], &beginInfo))
         {
-            throw std::runtime_error("Failed to begin recording command buffer");
+            assert(!"Failed to begin recording command buffer");
         }
         VkRenderPassBeginInfo renderPassInfo = {};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -806,11 +824,25 @@ void HelloVulkan::createCommandBuffers()
         vkCmdEndRenderPass(commandBuffers[i]);
         if (VK_SUCCESS != vkEndCommandBuffer(commandBuffers[i])) 
         {
-            throw std::runtime_error("failed to record command buffer!");
+            assert(!"failed to record command buffer!");
         }
     }
     
     
+}
+
+void HelloVulkan::createSemaphors()
+{
+    VkSemaphoreCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    if(VK_SUCCESS != vkCreateSemaphore(this->device, &createInfo, nullptr, &this->renderFinishedSemaphor) ||
+        VK_SUCCESS != vkCreateSemaphore(this->device, &createInfo, nullptr, &this->imageAvailableSemaphor))
+    {
+        assert(!"Could not create semaphors");
+    }
+
+
 }
 
 void HelloVulkan::createImageViews()
@@ -836,14 +868,44 @@ void HelloVulkan::createImageViews()
         createInfo.subresourceRange.layerCount = 1;
         if (VK_SUCCESS != vkCreateImageView(this->device, &createInfo, nullptr, &this->swapChainImageViews[i]))
         {
-            throw std::runtime_error("Could not create swap chain imaga views");
+            assert(!"Could not create swap chain imaga views");
         }
     }
 }
 
 void HelloVulkan::drawFrame()
 {
-    
+    uint32_t imageIndex;
+    vkAcquireNextImageKHR(this->device, this->swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphor, VK_NULL_HANDLE, &imageIndex);
+
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    VkSemaphore waitSemaphors[] = { imageAvailableSemaphor };
+    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = waitSemaphors;
+    submitInfo.pWaitDstStageMask = waitStages;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+    VkSemaphore signalSemaphors[] = { this->renderFinishedSemaphor };
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = signalSemaphors;
+
+    if (VK_SUCCESS != vkQueueSubmit(this->graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE))
+    {
+        assert(!"failed to submit draw commandbuffer!");
+    }
+    VkPresentInfoKHR presentInfo = {};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = signalSemaphors;
+    VkSwapchainKHR swapChains[] = { swapChain };
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = swapChains;
+    presentInfo.pImageIndices = &imageIndex;
+
+    vkQueuePresentKHR(this->presentQueue, &presentInfo);
+    vkQueueWaitIdle(this->presentQueue);
 }
 
 void HelloVulkan::loop()
@@ -853,4 +915,6 @@ void HelloVulkan::loop()
         glfwPollEvents();
         drawFrame();
     }
+
+    vkDeviceWaitIdle(this->device);
 }
