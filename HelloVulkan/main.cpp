@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "HelloVulkan.h"
+#include <assert.h>
 
 int main()
 {

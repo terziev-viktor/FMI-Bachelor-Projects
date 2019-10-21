@@ -86,22 +86,11 @@ HelloVulkan::~HelloVulkan()
         vkDestroySemaphore(this->device, this->imageAvailableSemaphors[i], nullptr);
         vkDestroyFence(this->device, this->inFlightFences[i], nullptr);
     }
+
+    cleanupSwapChain();
+    
     vkDestroyCommandPool(this->device, this->commandPool, nullptr);
 
-    for (auto &&framebuffer : this->swapChainFramebuffers)
-    {
-        vkDestroyFramebuffer(this->device, framebuffer, nullptr);
-    }
-    
-    vkDestroyPipeline(this->device, this->graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(this->device, this->pipelineLayout, nullptr);
-    vkDestroyRenderPass(this->device, this->renderPass, nullptr);
-    for (auto &&i : this->swapChainImageViews)
-    {
-        vkDestroyImageView(this->device, i, nullptr);
-    }
-    
-    vkDestroySwapchainKHR(this->device, this->swapChain, nullptr);
     vkDestroyDevice(this->device, nullptr);
     if(enableValidationLayers)
     {
@@ -242,7 +231,9 @@ VkExtent2D HelloVulkan::chooseSwapChainExtent2D(const VkSurfaceCapabilitiesKHR &
     }
     else
     {
-        VkExtent2D actualExtent = { WIDTH, HEIGHT };
+        int width, height;
+        glfwGetFramebufferSize(this->window, &width, &height);
+        VkExtent2D actualExtent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
         actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
         actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
 
@@ -570,6 +561,39 @@ void HelloVulkan::createSwapChain()
     this->swapChainImageFormat = format.format;
 }
 
+void HelloVulkan::cleanupSwapChain()
+{
+    for (auto &&framebuffer : this->swapChainFramebuffers)
+    {
+        vkDestroyFramebuffer(this->device, framebuffer, nullptr);
+    }
+    vkFreeCommandBuffers(this->device, this->commandPool, this->commandBuffers.size(), this->commandBuffers.data());
+    vkDestroyPipeline(this->device, this->graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(this->device, this->pipelineLayout, nullptr);
+    vkDestroyRenderPass(this->device, this->renderPass, nullptr);
+    for (auto &&i : this->swapChainImageViews)
+    {
+        vkDestroyImageView(this->device, i, nullptr);
+    }
+    
+    vkDestroySwapchainKHR(this->device, this->swapChain, nullptr);
+
+}
+
+void HelloVulkan::recreateSwapChain()
+{
+    vkDeviceWaitIdle(this->device);
+
+    cleanupSwapChain();
+
+    createSwapChain();
+    createImageViews();
+    createRenderPass();
+    createGraphicsPipeline();
+    createFramebuffers();
+    createCommandBuffers();
+}
+
 void HelloVulkan::createRenderPass()
 {
     VkAttachmentDescription colorAttachment = {};
@@ -893,56 +917,63 @@ void HelloVulkan::drawFrame()
     vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
     vkResetFences(device, 1, &inFlightFences[currentFrame]);
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphors[currentFrame], VK_NULL_HANDLE, &imageIndex);
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-                                        
-    VkSemaphore waitSemaphores[] = { imageAvailableSemaphors[currentFrame]};
-    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = waitSemaphores;
-    submitInfo.pWaitDstStageMask = waitStages;
-
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
-
-    VkSemaphore signalSemaphores[] = { renderFinishedSemaphors[currentFrame]};
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = signalSemaphores;
-
-    if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) 
+    VkResult r = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphors[currentFrame], VK_NULL_HANDLE, &imageIndex);
+    if(VK_ERROR_OUT_OF_DATE_KHR == r) 
     {
-        assert(!"failed to submit draw command buffer!");
+        recreateSwapChain();
     }
+    else if(VK_SUCCESS != r && VK_SUBOPTIMAL_KHR != r)
+    {
+        assert(!"Could not acquire next image");
+    }
+    else
+    {
+        VkSubmitInfo submitInfo = {};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+                                        
+        VkSemaphore waitSemaphores[] = { imageAvailableSemaphors[currentFrame]};
+        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = waitSemaphores;
+        submitInfo.pWaitDstStageMask = waitStages;
 
-    VkPresentInfoKHR presentInfo = {};
-    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
 
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = signalSemaphores;
+        VkSemaphore signalSemaphores[] = { renderFinishedSemaphors[currentFrame]};
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = signalSemaphores;
 
-    VkSwapchainKHR swapChains[] = { swapChain };
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = swapChains;
+        if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) 
+        {
+            assert(!"failed to submit draw command buffer!");
+        }
 
-    presentInfo.pImageIndices = &imageIndex;
+        VkPresentInfoKHR presentInfo = {};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
-    vkQueuePresentKHR(presentQueue, &presentInfo);
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = signalSemaphores;
 
-    currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+        VkSwapchainKHR swapChains[] = { swapChain };
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = swapChains;
+
+        presentInfo.pImageIndices = &imageIndex;
+
+        vkQueuePresentKHR(presentQueue, &presentInfo);
+
+        currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    }
 }
 
 void HelloVulkan::loop()
 {
+    uint32_t t = 0;
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-        auto begin = std::chrono::high_resolution_clock::now();
         drawFrame();
-        auto end = std::chrono::high_resolution_clock::now();       
-        std::chrono::duration<double> delta = std::chrono::duration_cast<std::chrono::duration<double>>(end - begin);
-        uint32_t fps = 1.0 / delta.count();
-        std::cout << fps << " fps\r";
     }
     vkDeviceWaitIdle(this->device);
 }

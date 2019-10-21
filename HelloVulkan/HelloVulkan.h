@@ -160,6 +160,10 @@ private:
 
     void createSwapChain();
 
+    void cleanupSwapChain();
+    
+    void recreateSwapChain();
+
     void createImageViews();
 
     void createRenderPass();
