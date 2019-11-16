@@ -5,8 +5,7 @@
 
 int main()
 {
-    HelloVulkan app;
-    if (app)
+    if (HelloVulkan app; app)
     {
         app.run();
     }
