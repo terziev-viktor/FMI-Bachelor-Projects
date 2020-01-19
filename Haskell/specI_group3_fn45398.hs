@@ -42,4 +42,11 @@ module MyHomework where
     sortOn :: Ord b => (a -> b) -> [a] -> [a]
     sortOn f = map snd . qsort (\(a,b)  (c,d) -> compare a c) . map (\x -> (f x, x))
 
-    
+    -- groupOn
+    groupOn :: Eq b => (a -> b) -> [a] -> [[a]]
+    groupOn f = map (map snd) . groupBy (\(a,b) (c, d) -> a == c) . map (\x -> ((f x), x)) 
+
+    -- =====================================
+    -- classifyOn
+    classifyOn :: Ord b => (a -> b) -> [a] -> [[a]]
+    classifyOn f = groupOn f . qsort f
