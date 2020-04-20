@@ -158,6 +158,7 @@ vector<State> AStar(const State & start, const State & goal)
 {
     struct Path
     {
+        // The cost of the path = real cost of the path + heuristic value
         int f() const { return H(states.back()) + G(states.back()); };
 
         vector<State> states;
@@ -185,10 +186,11 @@ vector<State> AStar(const State & start, const State & goal)
     {
         return {start};
     }
-    Path startp;
-    startp.states.push_back(start);
-    q.push(startp);
-    unsigned int ceiling = 1000;
+
+    Path startpath;
+    startpath.states.push_back(start);
+    q.push(startpath);
+    // unsigned int ceiling = 1000;
 
     // AStar main:
     while(!q.empty() /* && ceiling-- */)
@@ -198,14 +200,13 @@ vector<State> AStar(const State & start, const State & goal)
         if(p.states.back() == goal) { return p.states; }
 
         State st = p.states.back();
-            //log("popped:------------------\n", st);
+        //log("popped:------------------\n", st);
 
         for(auto & adj: st.Adj())
         {
-            pair<State, int> * v = isVisited(adj);
-            if(v != nullptr && v->second < H(adj) + G(adj))// this state is visited and the A* value is bigger
+            if(pair<State, int> * v = isVisited(adj); v != nullptr && v->second < H(adj) + G(adj))// this state is visited and the A* value is bigger
             {
-                continue;
+                continue; // ignore if the state is visited with smaller A* cost
             }
             Path nextPath = p;
             nextPath.states.push_back(adj);
