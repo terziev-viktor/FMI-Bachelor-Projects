@@ -6,6 +6,8 @@
 #include <sstream>
 using namespace std;
 
+// Линк към демото: https://godbolt.org/z/Hh6bWC
+
 // logging utility
 void log(auto what, auto... rest)
 {
