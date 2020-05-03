@@ -12,7 +12,27 @@ public class BlacklistClient {
     }
 
     public static void main(String args[]) throws IOException, InterruptedException {
-        for (String ip: args) {
+        Vector<String> ips = new Vector<String>();
+
+        if (args.length == 0) {
+            System.out.println("How many IPs would you like to check? ");
+            BufferedReader reader =
+                    new BufferedReader(new InputStreamReader(System.in));
+
+            // Reading data using readLine
+            String line =  reader.readLine();
+            int n = Integer.parseInt(line);
+            for(int i = 0; i < n; ++i) {
+                line = reader.readLine();
+                ips.add(line);
+            }
+
+        } else {
+            for(String ip: args) {
+                ips.add(ip);
+            }
+        }
+        for (String ip: ips) {
             InetAddress iprev = InetAddress.getByName(ip);
             byte[] bytes = iprev.getAddress();
             reverse(bytes);
