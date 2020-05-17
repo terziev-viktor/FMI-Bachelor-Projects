@@ -6,8 +6,6 @@
 #include <sstream>
 using namespace std;
 
-// Линк към демото: https://godbolt.org/z/Hh6bWC
-
 // logging utility
 void log(auto what, auto... rest)
 {
@@ -16,6 +14,12 @@ void log(auto what, auto... rest)
     {
         log(rest...);
     }
+}
+
+template<typename L, typename R>
+std::pair<L,R> operator+(const std::pair<L,R> & a, const std::pair<L,R> & b)
+{
+    return {a.first + b.first, a.second + b.second };
 }
 
 // Дъската е матрица m на n
@@ -86,15 +90,18 @@ struct Matrix
         vector<Matrix<m, n>> adj;
         adj.reserve(4);
         pair<int, int> blank = this->Blank();
-        int a[] = { -1, 0, 1, 0 };
-        int b[] = { 0, 1, 0, -1 };
+        pair<int, int> delta[] = 
+        {
+            {-1, 0 },
+            { 0, 1 },
+            { 1, 0 },
+            { 0, -1 }
+        };
         for(int i = 0; i < 4; ++i)
         {
             Matrix<m, n> tmp = *this;
-            pair<int, int> delta = blank;
-            delta.first += a[i];
-            delta.second += b[i];
-            if(tmp.Swap(blank, delta))
+            pair<int, int> blankAdj = blank + delta[i];
+            if(tmp.Swap(blank, blankAdj))
             {
                 // Броят стъпки до съседа е броят стъпки до нас + 1 (т.е. + тази стъпка duh)
                 tmp.g = this->g + 1;
