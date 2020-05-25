@@ -19,8 +19,20 @@ void log(auto what, auto... rest)
 template<typename L, typename R>
 std::pair<L,R> operator+(const std::pair<L,R> & a, const std::pair<L,R> & b)
 {
-    return {a.first + b.first, a.second + b.second };
+    return { a.first + b.first, a.second + b.second };
 }
+
+template<typename SelfType>
+concept MatrixConcept = requires(SelfType M, unsigned int row, unsigned int col, pair<unsigned int, unsigned int> rowcol)
+{
+    { M.at(row, col) } -> int &;
+    { M.at(rowcol) } -> int &;
+    { M.Blank() } -> pair<int, int>;
+    { M.Adj() } -> vector<SelfType>;
+    { M.g } -> int;
+    { M.Rows } -> const unsigned int;
+    { M.Cols } -> const unsigned int;
+};
 
 // Дъската е матрица m на n
 // Матрицата също представлява Node в графа на всички възможни състояния на дъската
@@ -124,23 +136,6 @@ private:
     array<int, m * n> M = { 0 };
 };
 
-// Евристичнa функция: Бротя на плочките, които не са на местата си
-auto h = [](const auto & State) -> int 
-{
-    int result = 0;
-    for(int i = 0; i < State.Rows; ++i)
-        for(int j = 0; j < State.Cols; ++j)
-            if(State.at(i, j) != i * State.Cols + j + 1)
-                ++result;
-    return result - 1; // '-1' will always be out of place
-};
-
-// Функция която връща реалното разстояние от началото до State
-auto g = [](const auto & State) -> int
-{
-    return State.g;
-};
-
 // printing of a matrix
 template<const unsigned int m, const unsigned int n>
 std::ostream & operator<<(std::ostream & out, const Matrix<m,n> M)
@@ -204,7 +199,7 @@ vector<State> AStar(const State & start, const State & goal)
     // AStar main:
     while(!q.empty() /* && ceiling-- */)
     {
-        Path p = q.top(); 
+        Path p = std::move(q.top()); 
         q.pop();
         if(p.states.back() == goal) { return p.states; }
 
@@ -226,6 +221,23 @@ vector<State> AStar(const State & start, const State & goal)
     }
     return vector<State>();
 }
+
+// Евристичнa функция: Бротя на плочките, които не са на местата си
+auto h = [](const MatrixConcept & State) -> int 
+{
+    int result = 0;
+    for(int i = 0; i < State.Rows; ++i)
+        for(int j = 0; j < State.Cols; ++j)
+            if(State.at(i, j) != i * State.Cols + j + 1)
+                ++result;
+    return result - 1; // '-1' will always be out of place
+};
+
+// Функция която връща реалното разстояние от началото до State
+auto g = [](const MatrixConcept & State) -> int
+{
+    return State.g;
+};
 
 int main()
 {
