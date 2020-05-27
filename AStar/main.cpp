@@ -41,8 +41,9 @@ concept MatrixConcept = requires(SelfType M, unsigned int row, unsigned int col,
 // За всеки съсед на сегашното състояние знаем, че разстоянието от началото до него е равно на състоянието до сегашното състояние + 1 (преместването на блокчето в .Adj())
 // Този факт прави имплементацията на g функцията по-долу тривиална
 template<const unsigned int m, const unsigned int n>
-struct Matrix
+class Matrix
 {
+public:
     int & at(unsigned int row, unsigned int col)
     {
         return M[row * n + col];
@@ -157,23 +158,23 @@ std::ostream & operator<<(std::ostream & out, const Matrix<m,n> M)
     return out;
 }
 
-template<typename State, int(*H)(const State &), int(*G)(const State &)>
-vector<State> AStar(const State & start, const State & goal)
+template<typename State>
+vector<State> AStar(const State & start, const State & goal, int(*H)(const State &), int(*G)(const State &))
 {
     struct Path
     {
         // The cost of the path = real cost of the path + heuristic value
-        int f() const { return H(states.back()) + G(states.back()); };
+        int f(int(*H)(const State &), int(*G)(const State &)) const { return H(states.back()) + G(states.back()); };
 
         vector<State> states;
-
-        bool operator<(const Path & other) const
-        {
-            return f() > other.f();
-        }
     };
-    
-    std::priority_queue<Path> q;
+
+    auto PathComparator = [H, G](const Path & self, const Path & other) -> bool
+    {
+        return self.f(H, G) > other.f(H, G);
+    };
+
+    std::priority_queue<Path, vector<Path>, decltype(PathComparator)> q(PathComparator);
     std::vector<pair<State, int>> visited;
 
     auto isVisited = [&visited](State & state) -> pair<State, int> *
@@ -247,7 +248,7 @@ int main()
     stringstream ss("1 2 3 4 5 6 7 8 -1");
     Goal.ReadFrom(ss);
 
-    auto result = AStar<Matrix<3,3>, h, g>(G, Goal);
+    auto result = AStar<Matrix<3,3>>(G, Goal, h, g);
     
     if(result.size() == 0)
     {
