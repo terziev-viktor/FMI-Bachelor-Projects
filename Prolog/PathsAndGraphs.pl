@@ -48,7 +48,7 @@ nat(N) :- nat(K), N is K + 1.
 % with height = max(height(Left), height(Right)) + 1
 % [[], Value, []] -> Leaf (tree with height of 0)
 
-% parametrization: Height, MinVertex, MaxVertex, VertexCount
+% parametrization: Height, MaxVertex, VertexCount
 bin_tree(Tree) :- 
     nat_triple(N, Max, K),
     Height is N - 1,
@@ -138,21 +138,44 @@ is_prime(P) :-
         between(2, P1, D),
             P mod D =:= 0
         )).
-        
-    
+
+primes(I, Ps) :-
+    I1 is I - 1,
+    range(2, I1, L),
+    filter(L, Ps).
+
+range(A, B, []) :- A > B.
+range(A, B, [A | T]) :- A =< B, A1 is A + 1, range(A1, B, T).
+
+filter([], []).
+filter([N | Ns], T) :- not(condition(N)), filter(Ns, T).
+filter([N | Ns], [N | T]) :- condition(N), filter(Ns, T).
+condition(X) :- is_prime(X), X mod 6 =:= 1.
+
+len([], 0).
+len([_H | T], N) :- len(T, K), N is K + 1.
+
+q(I, K, Ps) :- primes(I, Ps), len(Ps, K).
+
+% ------- Homework -----------
+check(X) :- nat(I), q(I, K, _), X is K + I.
+
+special([ [_, _, _] ]).
+special([ [_, _, _] | T]) :- special(T).
+
+x_coherent(X, Y) :- 
+    not(( 
+        member(A, Y), 
+        member(B, Y), 
+        not( member([A, A, B], X)) 
+       )),
+    special(X).
 
 
+split_x_coherent(X, Y, A, B) :- 
+    append(A, B, Y),
+    x_coherent(X, A),
+    x_coherent(X, B).
 
-
-
-
-
-
-
-
-
-
-
-
-
+% ------- Homework -----------
 
