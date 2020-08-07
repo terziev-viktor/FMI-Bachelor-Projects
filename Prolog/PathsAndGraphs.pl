@@ -31,15 +31,128 @@ inserted(Element, A, B) :- append(Abegin,  AEnd, A), append(Abegin, [Element | A
 
 in(X, [H | T]) :- X = H ; in(X, T).
 
-% binary tries
-get_KS(1, S, [S]).
-gen_KS(K, S, [H | T]) :-
+% binary trees
+ks(1, S, [S]).
+ks(K, S, [H | T]) :-
     K > 1,
     K1 is K - 1,
     between(0, S, H),
     SH is S - H,
-    gen_KS(K1, SH, T).
+    ks(K1, SH, T).
 
 nat(0).
 nat(N) :- nat(K), N is K + 1.
+
+% [] is non-valid empty tree or a tree with height of -1
+% [Left, Root, Right] -> bin tree with root Root, left subtree Left and right subtree Right
+% with height = max(height(Left), height(Right)) + 1
+% [[], Value, []] -> Leaf (tree with height of 0)
+
+% parametrization: Height, MinVertex, MaxVertex, VertexCount
+bin_tree(Tree) :- 
+    nat_triple(N, Max, K),
+    Height is N - 1,
+    bin_tree(Height, Max, K, Tree).
+    
+nat_triple(A, B, C) :-
+    nat(N),
+    ks(3, N, [A, B, C]).
+
+% bin_tree(Height, Max, K, Tree) -> Tree is a binary tree with 
+% K vertices, height of Height, a vertex with max
+% value Max, and Max is a vertex of the tree Tree
+
+max(S, B, B) :- S =< B.
+max(B, S, B) :- S =< B.
+
+bin_tree(Height, Max, K, Tree) :-
+   Max1 is Max - 1,
+   K1 is K - 1,
+   choose_kn(K1, Max1, S),
+   permutation([Max | S], V),
+   bin_tree(Height, V, Tree). 
+
+bin_tree(-1, _, []).
+bin_tree(0, [X | _T], [[], X, []]).
+bin_tree(0, [_X | T], [[], Root, []]) :-
+    member(Root, T).
+
+bin_tree(Height, V, [Left, Root, Right]) :- 
+    Height > 0,
+    subset(LeftV, V),
+    subset(RightV, V),
+    append(LeftV, [Root | RightV], PermutationOfV),
+    permutation(PermutationOfV, V),
+    H1 is Height - 1,
+    between(-1, H1, LeftHeight),
+    between(-1, H1, RightHeight),
+    max(LeftHeight, RightHeight, M),
+    Height is M + 1,
+    bin_tree(LeftHeight, LeftV, Left),
+    bin_tree(RightHeight, RightV, Right).
+
+choose_kn(K, N, S) :- choose_from(K, 0, N, S).
+
+choose_from(0, _Beg, _End, []).
+choose_from(K, Beg, End, [H | T]) :-
+    K > 0,
+    K1 is K - 1,
+    between(Beg, End, H),
+    H1 is H + 1,
+    choose_from(K1, H1, End, T).
+
+ivo_bin_tree(Height, Max, K, Tree) :-
+    Max1 is Max - 1,
+    K1 is K - 1,
+    choose_kn(K1, Max1, S),
+    permutation([Max | S], V),
+    ivo_bin_tree_v(Height, V, Tree).
+
+ivo_bin_tree_v(Height, V, Tree) :-
+    ivo_bin_tree_v_helper(Height, V, Tree, []).
+
+ivo_bin_tree_v_helper(-1, V, [], V).
+ivo_bin_tree_v_helper(Height, [Root | Vs], Tree, Rest) :-
+    Height >= 0,
+    H1 is Height - 1,
+    between(-1, H1, LeftHeight),
+    between(-1, H1, RightHeight),
+    valid_heights(LeftHeight, RightHeight, H1),
+    ivo_bin_tree_v_helper(LeftHeight, Vs, LeftTree, RightVertices),
+    ivo_bin_tree_v_helper(RightHeight, RightVertices, RightTree, Rest),
+    Tree = [LeftTree, Root, RightTree]. 
+
+valid_heights(H, _, H).
+valid_heights(_, H, H).
+
+% Prime numbers
+prime(P) :-
+    nat(P),
+    P > 1,
+    is_prime(P).
+
+is_prime(P) :-
+    P > 1,
+    P1 is P - 1,
+    not((
+        between(2, P1, D),
+            P mod D =:= 0
+        )).
+        
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
