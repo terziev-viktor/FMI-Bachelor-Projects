@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 auto main() -> int
 {
@@ -21,7 +22,7 @@ auto main() -> int
 
     auto [pipe_read, pipe_write] = the_pipe;
 
-    if(int pid = fork() > 0) // we are the child process
+    if(pid_t pid = fork(); pid == 0) // we are the child process
     {
         printf("Im the child process man! My id is %d \n", pid);
         write(pipe_write, msg1, MSGSIZE);
