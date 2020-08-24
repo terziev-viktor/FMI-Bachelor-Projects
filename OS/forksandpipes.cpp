@@ -33,7 +33,7 @@ auto main() -> int
         sleep(1); // doint some hard, hard work
         write(pipe_write, msg3, MSGSIZE);
 
-        exit(0);
+        return 0;
     }
     else // we are the parent process
     {
@@ -50,6 +50,6 @@ auto main() -> int
         
         puts("Finised reading!");
 
-        exit(0);
+        return 0;
     }
 }   
