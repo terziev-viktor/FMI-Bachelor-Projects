@@ -14,7 +14,7 @@ auto main(int argc, char* argv[]) -> int
     if(argc != 2)
     {
         puts("Wrong usage");
-        exit(1);
+        return 1;
     }
 
     if(int file = open(argv[1], O_RDONLY); file >= 0)
@@ -36,5 +36,5 @@ auto main(int argc, char* argv[]) -> int
         puts("Could not open that file...");
     }
     
-    exit(0);
+    return 0;
 }
