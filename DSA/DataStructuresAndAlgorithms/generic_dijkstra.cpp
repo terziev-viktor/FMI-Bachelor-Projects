@@ -1,6 +1,3 @@
-// x86_64 gcc 10.1
-// gcc -std=c++2a -fconcepts -Os generic_dijkstra.cpp
-
 #include <iostream>
 #include <concepts>
 #include <algorithm>
@@ -12,26 +9,24 @@
 using namespace std;
 using namespace std::chrono;
 
-auto dijkstra(forward_iterator auto V_begin, forward_iterator auto V_end, 
-                forward_iterator auto E_begin, forward_iterator auto E_end, 
-                auto w, 
+auto dijkstra(forward_iterator auto V_begin, forward_iterator auto V_end,
+                auto w,
                 decltype(V_begin) S,
-                auto adj) requires std::invocable<decltype(w), decltype(E_begin)>
+                auto adj)
 {
     using v_type = decltype(V_begin);
-    using e_type = decay_t<decltype(*E_begin)>;
     using w_type = decltype(w);
-
-    auto d_comparator = [V_begin](v_type v1, v_type v2) 
-    { 
-        return distance(V_begin, v1) < distance(V_begin, v2); 
-    };
-
-    using d_comparator_t = decltype(d_comparator);
 
     vector<float> d(distance(V_begin, V_end), INT_MAX);
     d[distance(V_begin, S)] = 0;
     
+    auto d_comparator = [V_begin, &d](v_type v1, v_type v2) 
+    { 
+        return d[distance(V_begin, v1)] < d[distance(V_begin, v2)];
+    };
+
+    using d_comparator_t = decltype(d_comparator);
+
     // Priority queue of Vs
     priority_queue<v_type, vector<v_type>, d_comparator_t> Q(d_comparator);
 
@@ -44,12 +39,11 @@ auto dijkstra(forward_iterator auto V_begin, forward_iterator auto V_end,
         
         for(auto & u : adj(v))
         {
-            e_type e { v, u };
-            auto e_iter = find(E_begin, E_end, e);
+            pair<v_type, v_type> e { v, u };
             int v_index = distance(V_begin, v);
             int u_index = distance(V_begin, u);
 
-            if(float trial_w = d[v_index] + w(e_iter); d[u_index] > trial_w)
+            if(float trial_w = d[v_index] + w(e); d[u_index] > trial_w)
             {
                 d[u_index] = trial_w;
                 Q.push(u);
@@ -101,17 +95,20 @@ auto main() -> int
         |---(4)
     */
 
-    array<float, 5> weights = { 1.f, 3.f, 1.5f, 1.f, 1.f };
+    array<float, 5> weights = { 1.f, 3.f, 1.5f, 4.f, 1.f };
 
-    auto w = [Es_begin = begin(E), weights](E_type e) 
+    auto w = [Es_begin = begin(E), Es_end = end(E), weights](const pair<V_type, V_type> & e) 
     {
-        int index = distance(Es_begin, e);
-        if(index < 0)
+        auto e_iter = find(Es_begin, Es_end, e);
+        if(e_iter != Es_end)
         {
-            puts("Wrong call of weight function");
-            return 0.f;
+            int index = distance(Es_begin, e_iter);
+            return weights[index];
         }
-        return weights[index];
+        else
+        {
+            return numeric_limits<float>::infinity();
+        }
     };
 
     auto adj = [&Adjs](V_type v)
@@ -130,7 +127,7 @@ auto main() -> int
 
     auto t1 = chrono::high_resolution_clock::now();
     
-    auto d = dijkstra(begin(V), end(V), begin(E), end(E), w, begin(V), adj);
+    auto d = dijkstra(begin(V), end(V), w, begin(V), adj);
 
     auto t2 = chrono::high_resolution_clock::now();
 
