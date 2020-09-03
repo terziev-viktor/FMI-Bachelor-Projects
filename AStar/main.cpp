@@ -158,7 +158,14 @@ std::ostream & operator<<(std::ostream & out, const Matrix<m,n> M)
     return out;
 }
 
-template<typename State>
+template<typename SelfType>
+concept GraphNode = requires(SelfType x, SelfType y)
+{
+    x.Adj();
+    x == y;
+};
+
+template<GraphNode State>
 vector<State> AStar(const State & start, const State & goal, int(*H)(const State &), int(*G)(const State &))
 {
     struct Path
