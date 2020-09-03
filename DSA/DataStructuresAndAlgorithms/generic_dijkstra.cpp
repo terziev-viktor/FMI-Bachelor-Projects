@@ -17,7 +17,7 @@ auto dijkstra(forward_iterator auto V_begin, forward_iterator auto V_end,
     using v_type = decltype(V_begin);
     using w_type = decltype(w);
 
-    vector<float> d(distance(V_begin, V_end), INT_MAX);
+    vector<float> d(distance(V_begin, V_end), numeric_limits<float>::infinity());
     d[distance(V_begin, S)] = 0;
     
     auto d_comparator = [V_begin, &d](v_type v1, v_type v2) 
@@ -97,7 +97,7 @@ auto main() -> int
 
     array<float, 5> weights = { 1.f, 3.f, 1.5f, 4.f, 1.f };
 
-    auto w = [Es_begin = begin(E), Es_end = end(E), weights](const pair<V_type, V_type> & e) 
+    auto w = [Es_begin = begin(E), Es_end = end(E), weights](const pair<V_type, V_type> & e) -> float
     {
         auto e_iter = find(Es_begin, Es_end, e);
         if(e_iter != Es_end)
