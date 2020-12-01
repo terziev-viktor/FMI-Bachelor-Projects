@@ -1,3 +1,4 @@
+// Type your code here, or load an example.
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -9,6 +10,17 @@ typedef struct shape_t_decl
     int x;
     int y;
 } shape_t;
+
+struct virtual_t_decl
+{
+    void (*print)(shape_t *);
+} shape_virtual_table, circle_virtual_table;
+
+
+void print(shape_t * shape)
+{
+    shape->vtable->print(shape);
+}
 
 typedef struct circle_t_decl
 {
@@ -29,11 +41,6 @@ void circle_print(shape_t * this)
     printf(" radius = %d", this_circle->radius);
 }
 
-struct virtual_t_decl
-{
-    void (*print)(shape_t *);
-} shape_virtual_table, circle_virtual_table;
-
 void init_virtual_tables()
 {
     shape_virtual_table.print = shape_print;
@@ -51,5 +58,5 @@ int main()
     c.shape.vtable = &circle_virtual_table;
 
     shape_t * ashape = (shape_t *) &c;
-    ashape->vtable->print(ashape);
+    print(ashape);
 }
