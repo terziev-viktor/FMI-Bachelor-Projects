@@ -1,0 +1,39 @@
+explicitEuler[n_, f_] := (
+
+  h = 1.0/n;(*compute numerically*)
+
+  xList = Table[i*h, {i, 0, n}];
+
+  yList = Table[0, {n + 1}];
+
+  
+
+  yList[[1]] = 1;
+
+  For[i = 1, i < n + 1, i++,
+
+   yList[[i + 1]] = yList[[i]] + h*f[xList[[i]], yList[[i]]]
+
+   ];
+
+  
+
+  Transpose[{xList, yList}]
+
+  );
+
+
+implicitEuler[n_, f_] := (
+  h = 1.0/n;
+  xList = Table[i*h, {i, 0, n}];
+  yList = Table[0, {n + 1}];
+  
+  yList[[1]] = 1;
+  For[i = 1, i < n + 1, i++,
+   initialGuess = yList[[i]] + h*f[xList[[i]], yList[[i]]];
+   yList[[i + 1]] = FindRoot[ yNew ==  yList[[i]] + h*f[xList[[i + 1]], yNew], {yNew,initialGuess}][[1, 2]]
+   ];
+  
+  Transpose[{xList, yList}]
+  );
+  
