@@ -1,0 +1,59 @@
+RK4[f_, t0_, T_, u0_, h_] := (
+  n = Ceiling[(T - t0)/h];
+  tArr = Table[t0 + i*h, {i, 0, n}];
+  yArr = Table[0, {i, 0, n}];
+  yArr[[1]] = u0;
+
+  
+  For[i = 1, i <= n, i++,
+   k1 = h*f[tArr[[i]], yArr[[i]]];
+   k2 = h*f[tArr[[i]] + h/2, yArr[[i]] + k1/2];
+   k3 = h*f[tArr[[i]] + h/2, yArr[[i]] + k2/2];
+   k4 = h*f[tArr[[i]] + h, yArr[[i]] + k3];
+   yArr[[i + 1]] = yArr[[i]] + 1/6*(k1 + 2*k2 + 2*k3 + k4);
+   ];
+  Transpose[{tArr, yArr}]
+  )
+  
+  
+  AB4[f_, t0_, T_, u0_, h_]:=
+(
+  n = Ceiling[(T - t0)/h];
+ tArr = Table[t0 + i*h, {i, 0, n}];
+  yArr = Table[0, {i, 0, n}];
+ fArr=Table[0,{i,0,n}];
+  yArr[[1]] = u0;
+  fArr[[1]]=f[tArr[[1]],yArr[[1]]];
+
+  
+  For[i = 1, i <= 3, i++,
+   k1 = h*f[tArr[[i]], yArr[[i]]];
+   k2 = h*f[tArr[[i]] + h/2, yArr[[i]] + k1/2];
+   k3 = h*f[tArr[[i]] + h/2, yArr[[i]] + k2/2];
+   k4 = h*f[tArr[[i]] + h, yArr[[i]] + k3];
+   yArr[[i + 1]] = yArr[[i]] + 1/6*(k1 + 2*k2 + 2*k3 + k4);
+   fArr[[i+1]]=f[tArr[[i+1]],yArr[[i+1]]];
+   ];
+   
+   For[i=4,i<=Length[yArr]-1,i++,
+   yArr[[i+1]]=yArr[[i]]+h/24(55fArr[[i]]-59fArr[[i-1]]+37fArr[[i-2]]-9fArr[[i-3]]);
+   fArr[[i+1]]=f[tArr[[i+1]],yArr[[i+1]]];
+   ];
+   
+  Transpose[{tArr, yArr}]
+)
+
+f[t_,u_]:=10u(1-u)
+appr001=AB4[f,0,6,0.1,0.001];
+plot1=ListPlot[appr001, PlotRange->All];
+exact[t_]=DSolve[{u'[t]==f[t,u[t]],u[0]==0.1},u[t],t][[1,1,2]];
+plot2=Plot[exact[t],{t,0,6},PlotRange->All, PlotStyle->Red];
+Show[plot1,plot2]
+
+appr1=AB4[f,0,6,0.1,0.1];
+appr01=AB4[f,0,6,0.1,0.01];
+appr001=AB4[f,0,6,0.1,0.001];
+
+GraphicsRow[{ListLinePlot[Abs[exact[appr1[[All,1]]]-appr1[[All,2]]], PlotRange->All],
+ListLinePlot[Abs[exact[appr01[[All,1]]]-appr01[[All,2]]], PlotRange->All],
+ListPlot[Abs[exact[appr001[[All,1]]]-appr001[[All,2]]], PlotRange->All]}]
