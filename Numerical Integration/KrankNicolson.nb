@@ -1,0 +1,40 @@
+KrankNicolson[l_, T_, h_, u0_, uL_, uR_] := (
+  \[Tau] = h^2/2; (*the method is stable in max-norm for h^2/2*)
+ (*\[Tau]=h; -> the method is stable in l2-norm and the error is O(h^2)*)
+  n = Ceiling[l/h];
+  m = Ceiling[T/\[Tau]];
+  x = Table[i*h, {i,0, n}];
+  t = Table[j*\[Tau], {j, 0, m}];
+  y = Table[0, {n + 1}, {m + 1}];
+  
+  (*Initial condition*)
+  For[i = 1, i <= n + 1, i++,
+   y[[i, 1]] = u0[x[[i]]];
+   ];
+  
+  (*Generate matrix. It is the same for all times*)
+  A=Table[0,{n+1},{n+1}];
+  A[[1,1]]=1;
+  A[[n+1,n+1]]=1;
+  For[i=2,i<=n, i++,
+  A[[i,i-1]]=-1/(2h^2);
+  A[[i,i]]=1/\[Tau]+1/h^2;
+  A[[i,i+1]]=-1/(2h^2)
+  ];
+  
+  
+(*Iterate over time*)
+  For[j = 1, j <= m, j++,
+  (*Generate vector of the RHS*)
+  b=Table[0,{n+1}];
+  b[[1]]=uL[t[[j+1]]];
+  b[[n+1]]=uR[t[[j+1]]];
+  For[i = 2, i <= n, i++,
+  b[[i]] = y[[i,j]]/\[Tau]+(y[[i-1,j]]-2y[[i,j]]+y[[i+1,j]])/(2h^2);
+  ];
+  (*Solve the system*)
+  y[[All,j+1]]=LinearSolve[A,b];
+  ];
+  
+  {x, t, y}
+  ) 
