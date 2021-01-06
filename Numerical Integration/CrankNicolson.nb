@@ -1,4 +1,4 @@
-KrankNicolson[l_, T_, h_, u0_, uL_, uR_] := (
+CrankNicolson[l_, T_, h_, u0_, uL_, uR_] := (
   \[Tau] = h^2/2; (*the method is stable in max-norm for h^2/2*)
  (*\[Tau]=h; -> the method is stable in l2-norm and the error is O(h^2)*)
   n = Ceiling[l/h];
