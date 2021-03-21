@@ -6,8 +6,6 @@
 #include <stdbool.h>
 #include <time.h>
 
-#define min(X,Y) ((X) < (Y) ? (X) : (Y))
-
 typedef struct
 {
     size_t data_size;
@@ -15,20 +13,14 @@ typedef struct
     char data[];
 } vector_t;
 
-typedef struct
-{
-    vector_t v;
-    bool (*pushbackorpushfront)(void*, void*, size_t);
-} vector_pusher_t;
-
 vector_t * VECTOR_CAST( void * self ) 
 {
     return (vector_t*)(((char*)(self)) - offsetof(vector_t, data));
 }
 
-void * vector_create(size_t elements_count, size_t of_size)
+void * vector_create_with_capacity(size_t elements_count, size_t of_size)
 {
-    size_t data_size = of_size * elements_count;
+    size_t data_size = elements_count * of_size;
     vector_t * self = malloc(sizeof(vector_t) + data_size);
     if(self == NULL)
     {
@@ -38,6 +30,11 @@ void * vector_create(size_t elements_count, size_t of_size)
     self->data_size = data_size;
     self->length = 0;
     return self->data;
+}
+
+void * vector_create()
+{
+    return vector_create_with_capacity(0, 0);
 }
 
 void * vector_create_with_length(size_t length, size_t element_size)
@@ -71,16 +68,16 @@ bool vector_reserve(void * * s, size_t new_length, size_t sizeof_e)
 
     vector_t * self_tmp = NULL;
     self_tmp = realloc(self, sizeof(vector_t) + new_data_size);
-    
-    if(self_tmp)
+    if(self_tmp == NULL)
     {
-        self = self_tmp;
+        return false;
     }
+    else self = self_tmp;
 
     self->data_size = new_data_size;
     *s = self->data;
 
-    return new_length != old_length;
+    return true;
 }
 
 bool vector_resize(void * * s, size_t new_length, size_t sizeof_e)
@@ -90,7 +87,6 @@ bool vector_resize(void * * s, size_t new_length, size_t sizeof_e)
     self->length = new_length;
     return true;
 }
-
 
 bool vector_push_back(void * * ref_self_data, void * e, size_t sizeof_e)
 {
@@ -109,7 +105,6 @@ bool vector_push_back(void * * ref_self_data, void * e, size_t sizeof_e)
     self->length++;
     return true;
 }
-
 
 size_t vector_length(void * obj)
 {
@@ -152,6 +147,15 @@ void * vector_create_by_filter(void * begin, void * end, size_t s, bool (*f)(voi
         vector_push_back((void**) &filtered, iter, s);
         begin = iter + s;
     }
+    return filtered;
+}
+
+void vector_transform(void * begin, void * end, void * out_begin, size_t sizeof_e,  void (*f)(void *, void *) )
+{
+    for(void * iter = begin; iter != end; iter += sizeof_e, out_begin += sizeof_e)
+    {
+        f(iter, out_begin);
+    }
 }
 
 typedef struct
@@ -166,14 +170,6 @@ bool is_even_pair(void * pair_ref)
     return (pair->a % 2 == 0) && (pair->b % 2 == 0);
 }
 
-void vector_transform(void * begin, void * end, void * out_begin, size_t sizeof_e,  void (*f)(void *, void *) )
-{
-    for(void * iter = begin; iter != end; iter += sizeof_e, out_begin += sizeof_e)
-    {
-        f(iter, out_begin);
-    }
-}
-
 void pair_times_rand(void * in_pair_ref, void * out_pair_ref)
 {
     pair_t * in_pair = (pair_t *) in_pair_ref;
@@ -185,29 +181,30 @@ void pair_times_rand(void * in_pair_ref, void * out_pair_ref)
 
 int main()
 {
-    srand(time(NULL));
+    srand(time(0));
 
-    pair_t * pairs = vector_create(2, sizeof(pair_t));
-    vector_add(pairs, ((pair_t){3,22}));
-    vector_add(pairs, ((pair_t){4,6}));
-
-    pair_t p = { 1, 2 };
-
-    for(size_t i = 0; i < 20; ++i)
+    pair_t * pairs = vector_create_with_capacity(1, sizeof(pair_t));
+    vector_add(pairs, ((pair_t){3,3}));
+    
     {
-        p.a++;
-        vector_push_back((void**) &pairs, &p, sizeof(pair_t));
+        pair_t p = { 1, 2 };
+        for(size_t i = 0; i < 20; ++i)
+        {
+            vector_push_back((void**) &pairs, &p, sizeof(pair_t));
+        }
     }
-
+    
     vector_transform(pairs, vector_end(pairs), pairs, sizeof(pair_t), pair_times_rand);
 
-    pair_t * even_pairs = vector_create_by_filter(vector_begin(pairs), vector_end(pairs), sizeof(pair_t), is_even_pair);
-    
-    for(pair_t * p = vector_begin(even_pairs); p != vector_end(even_pairs); ++p)
     {
-        printf("{%d, %d}\n", p->a, p->b);
-    }
+        pair_t * even_pairs = vector_create_by_filter(vector_begin(pairs), vector_end(pairs), sizeof(pair_t), is_even_pair);
 
-    vector_destroy((void**) &even_pairs);
+        for(pair_t * p = vector_begin(even_pairs); p != vector_end(even_pairs); ++p)
+        {
+            printf("{%d, %d}\n", p->a, p->b);
+        }
+
+        vector_destroy((void**) &even_pairs);
+    }
     vector_destroy((void**) &pairs);
 }
