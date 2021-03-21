@@ -39,7 +39,7 @@ void * vector_create()
 
 void * vector_create_with_length(size_t length, size_t element_size)
 {
-    void * self = vector_create(length, element_size);
+    void * self = vector_create_with_capacity(length, element_size);
     VECTOR_CAST(self)->length = length;
     return self;
 }
